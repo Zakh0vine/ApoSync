@@ -1,44 +1,46 @@
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { User } from "../models/User.js";
-import dotenv from "dotenv";
+// src/config/passport.js
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const prisma = require("../../prisma/client");
+const { generateToken } = require("../utils/jwt");
 
-dotenv.config();
-
-// Konfigurasi Google Strategy
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback",
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await User.findOne({ where: { googleId: profile.id } });
+        let user = await prisma.user.findUnique({
+          where: { email: profile.emails[0].value },
+        });
 
         if (!user) {
-          user = await User.create({
-            googleId: profile.id,
-            name: profile.displayName,
-            email: profile.emails[0].value,
+          user = await prisma.user.create({
+            data: {
+              name: profile.displayName,
+              email: profile.emails[0].value,
+              role: "KARYAWAN",
+              branchId: 1, // Default branch sementara
+            },
           });
         }
 
-        return done(null, user);
-      } catch (error) {
-        return done(error, null);
+        const token = generateToken(user);
+        done(null, { user, token });
+      } catch (err) {
+        done(err, null);
       }
     }
   )
 );
 
-// Serialize & Deserialize User
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user);
 });
 
-passport.deserializeUser(async (id, done) => {
-  const user = await User.findByPk(id);
+passport.deserializeUser((user, done) => {
   done(null, user);
 });
