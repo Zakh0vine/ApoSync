@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model branch {
+  id       Int    @id @default(autoincrement())
+  name     String
+  location String
+}
+
+model product {
+  id        Int              @id @default(autoincrement())
+  name      String
+  category  product_category
+  stock     Int
+  branchId  Int
+  createdAt DateTime         @default(now())
+  updatedAt DateTime
+
+  @@index([branchId], map: "Product_branchId_fkey")
+}
+
+model user {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique(map: "User_email_key")
+  password  String?   @db.VarChar(255)
+  role      user_role
+  branchId  Int
+  createdAt DateTime  @default(now())
+
+  @@index([branchId], map: "User_branchId_fkey")
+}
+
+enum product_category {
+  OBAT_BEBAS
+  OBAT_BEBAS_TERBATAS
+  KONSI
+  ALKES
+}
+
+enum user_role {
+  KARYAWAN
+  MANAGER
+  OWNER
+}
