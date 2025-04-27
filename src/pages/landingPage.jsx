@@ -1,10 +1,10 @@
 import { FaPhoneAlt, FaClock, FaMapMarkerAlt } from "react-icons/fa";
 import { RiInstagramFill } from "react-icons/ri";
 
-import Navbar from "@/components/navbar";
-import Layanan from "@/components/layanan/index";
-import Apotek from "@/components/apotek/slider";
-import Footer from "@/components/footer";
+import Navbar from "@/components/landingPage/navbar";
+import Layanan from "@/components/landingPage/sliderLayanan/index";
+import Apotek from "@/components/landingPage/sliderApotek/slider";
+import Footer from "@/components/landingPage/footer";
 
 import Logo from "@/assets/logo2.png";
 import BgTentang from "@/assets/tentang.png";
