@@ -3,14 +3,16 @@ import { TiPlusOutline } from "react-icons/ti";
 import { IoIosSearch } from "react-icons/io";
 import { TbEdit } from "react-icons/tb";
 import { GoTrash } from "react-icons/go";
-import { Button } from "@/components/button";
+import { useNavigate } from "react-router-dom";
 
+import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filter";
 import Pagination from "@/components/pagination";
 
 export default function Produk() {
+  const navigate = useNavigate();
   const produkList = [
     {
       id: 1,
@@ -96,32 +98,34 @@ export default function Produk() {
 
   return (
     <Layout>
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full">
         {/* Breadcrumb */}
         <Breadcrumb pageName="Produk" />
 
         {/* Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <Button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <Button
+            onClick={() => navigate("/produk-masuk")}
+            className="bg-[#23B000] hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
+          >
             Tambah Produk <TiPlusOutline className="size-5" />
           </Button>
 
-          <div className="flex gap-2">
-            <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
               <IoIosSearch className="text-white" />
               <input
                 type="text"
                 placeholder="Cari"
-                className="bg-transparent outline-none ml-2 text-sm placeholder-white text-white"
+                className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
             <Filter />
           </div>
         </div>
 
-        {/* Tabel Produk */}
-        <div className="overflow-x-auto rounded-lg">
-          <table className="w-full text-sm">
+        <div className="w-full overflow-x-auto block">
+          <table className="min-w-full border-collapse">
             <thead>
               <tr className="bg-[#A7CAF3] text-left">
                 <th className="px-4 py-2">ID</th>
@@ -155,7 +159,9 @@ export default function Produk() {
         </div>
 
         {/* Pagination */}
-        <Pagination />
+        <div className="mt-6">
+          <Pagination />
+        </div>
       </div>
     </Layout>
   );

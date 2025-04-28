@@ -7,7 +7,7 @@ import { BiLogOut } from "react-icons/bi";
 
 import Logo from "@/assets/logo.png";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const menuItems = [
@@ -35,11 +35,25 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-60 bg-white h-screen shadow-md fixed left-0 top-0 flex flex-col justify-between">
-      <div className="p-6">
+    <div
+      className={`
+        bg-white shadow-md h-screen fixed top-0 left-0 z-40 transform
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0 transition-transform duration-300 w-60
+      `}
+    >
+      <div className="p-6 relative">
+        {/* Close button mobile */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-2xl md:hidden"
+        >
+          ×
+        </button>
+
         <img src={Logo} alt="Logo" className="h-20 w-20 mb-8 mx-auto" />
-        {/* <div className="text-2xl font-bold mb-8">MEDISTOCK</div> */}
-        <ul className="space-y-4">
+
+        <ul className="space-y-6">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.to;
             return (
@@ -47,7 +61,9 @@ const Sidebar = () => {
                 <Link
                   to={item.to}
                   className={`flex items-center gap-2 ${
-                    isActive ? "text-blue-500 font-semibold" : "text-black"
+                    isActive
+                      ? "text-[#6499E9] text-lg font-semibold"
+                      : "text-black text-lg"
                   }`}
                 >
                   {item.icon} {item.label}

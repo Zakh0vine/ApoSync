@@ -1,109 +1,104 @@
 import React from "react";
 import Layout from "@/components/Layout";
+import Working from "@/assets/working.png";
+import Pharmacy from "@/assets/pharmacy.png";
 
 export default function Dashboard() {
   return (
     <Layout>
-      <div className="p-6 bg-white min-h-screen">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-8">
+      <div className="p-4 sm:p-10 bg-white min-h-screen">
+        {/* Header - Improved responsive layout */}
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-xl font-semibold">Hello, Fasha</h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <h1 className="text-xl sm:text-xl font-semibold">Hello, Fasha</h1>
+            <p className="text-gray-400 text-base sm:text-base mt-1">
               Here are your daily updates.
             </p>
           </div>
-          <div>
-            <h2 className="text-xl font-semibold">Dashboard</h2>
-            <div className="mt-2">
-              <img
-                src="https://via.placeholder.com/120x100"
-                alt="Dashboard Illustration"
-                className="w-40 object-cover"
-              />
-            </div>
+          <div className="flex items-center space-x-6">
+            <div className="w-1 h-12 bg-black"></div>
+            <h2 className="text-xl sm:text-2xl font-bold">Dashboard</h2>
           </div>
         </div>
 
-        {/* Card: Total Obat dan Barang */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white shadow-md rounded-md p-4 relative">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-md font-semibold">Total Obat Dan barang</h3>
-              <span className="border border-blue-300 text-blue-400 text-xs px-2 py-0.5 rounded-full">
+        {/* Atas: Kotak Total Obat + Gambar Working - Improved responsive grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          {/* Total Obat Dan Barang */}
+          <div className="bg-white shadow-md rounded-md p-7 sm:p-8 border flex flex-col justify-center items-center">
+            <div className="flex justify-between items-center w-full mb-2">
+              <h3 className="text-xl sm:text-xl font-semibold">
+                Total Obat Dan Barang
+              </h3>
+              <span className="border border-[#55BED2] text-[#55BED2] text-base font-semibold px-3 py-0.5 rounded-full">
                 LIVE
               </span>
             </div>
-            <div className="flex flex-col items-center justify-center mt-4">
-              <p className="text-lg font-bold">250 Obat Dan Barang</p>
-              <img
-                src="https://via.placeholder.com/100x80"
-                alt="Obat Illustration"
-                className="w-24 mt-2"
-              />
-            </div>
+            <div className="w-full h-0.5 bg-[#6C757D] my-2"></div>
+            <p className="text-xl sm:text-xl font-bold mt-2 sm:mt-4 mb-2 sm:mb-4">
+              250 Obat Dan Barang
+            </p>
+            <img
+              src={Pharmacy}
+              alt="Obat Illustration"
+              className="h-24 sm:h-36 mt-2 object-contain"
+            />
           </div>
 
-          {/* Graph: Total Obat dan Barang */}
-          <div className="bg-white shadow-md rounded-md p-4">
-            <h3 className="text-md font-semibold mb-4">
-              Total Obat Dan Barang
-            </h3>
-            <div className="space-y-3">
-              {/* Item 1 */}
-              <div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span>Obat Bebas Dan Terbatas</span>
-                  <span>120</span>
+          {/* Gambar Working */}
+          <div className="flex items-center justify-center">
+            <img
+              src={Working}
+              alt="Dashboard Illustration"
+              className="w-full max-w-sm sm:max-w-md object-contain"
+            />
+          </div>
+        </div>
+
+        {/* Grafik: Total Obat Dan Barang */}
+        <div className="bg-white shadow-md rounded-md p-7 sm:p-8 border mb-4 sm:mb-6">
+          <h3 className="text-xl sm:text-xl font-semibold mb-3 sm:mb-4">
+            Total Obat Dan Barang
+          </h3>
+          <div className="w-full h-0.5 bg-[#6C757D] mb-4"></div>
+          <div className="space-y-3 sm:space-y-4">
+            {/* Item Grafik */}
+            {[
+              { label: "Obat Bebas Dan Terbatas", value: 120, width: "80%" },
+              { label: "Obat Keras", value: 40, width: "30%" },
+              { label: "Konsi", value: 80, width: "60%" },
+              { label: "Alkes", value: 10, width: "10%" },
+            ].map((item, index) => (
+              <div key={index}>
+                <div className="flex justify-between text-base sm:text-base font-medium">
+                  <span>{item.label}</span>
+                  <span>{item.value}</span>
                 </div>
-                <div className="bg-gray-200 rounded-full h-2.5 mt-1">
-                  <div className="bg-orange-400 h-2.5 rounded-full w-[80%]"></div>
-                </div>
-              </div>
-              {/* Item 2 */}
-              <div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span>Obat Keras</span>
-                  <span>40</span>
-                </div>
-                <div className="bg-gray-200 rounded-full h-2.5 mt-1">
-                  <div className="bg-orange-400 h-2.5 rounded-full w-[30%]"></div>
-                </div>
-              </div>
-              {/* Item 3 */}
-              <div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span>Konsi</span>
-                  <span>80</span>
-                </div>
-                <div className="bg-gray-200 rounded-full h-2.5 mt-1">
-                  <div className="bg-orange-400 h-2.5 rounded-full w-[60%]"></div>
-                </div>
-              </div>
-              {/* Item 4 */}
-              <div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span>Alkes</span>
-                  <span>10</span>
-                </div>
-                <div className="bg-gray-200 rounded-full h-2.5 mt-1">
-                  <div className="bg-orange-400 h-2.5 rounded-full w-[10%]"></div>
+                <div className="bg-gray-200 rounded-full h-2 sm:h-2.5 mt-1">
+                  <div
+                    className="bg-orange-400 h-2 sm:h-2.5 rounded-full"
+                    style={{ width: item.width }}
+                  ></div>
                 </div>
               </div>
-            </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pendapatan Harian */}
+        <div className="bg-white shadow-md rounded-md p-7 sm:p-8 border">
+          <h3 className="text-xl sm:text-xl font-semibold mb-3 sm:mb-4">
+            Pendapatan Harian
+          </h3>
+          <div className="w-full h-0.5 bg-[#6C757D] mb-4"></div>
+
+          {/* Bagi 50%-50% */}
+          <div className="flex pb-2 text-base sm:text-base font-medium">
+            <div className="w-1/2 text-center">Obat Masuk</div>
+            <div className="w-1/2 text-center">Obat Keluar</div>
           </div>
 
-          {/* Pendapatan Harian */}
-          <div className="bg-white shadow-md rounded-md p-4 col-span-1 lg:col-span-2">
-            <h3 className="text-md font-semibold mb-4">Pendapatan Harian</h3>
-            <div className="flex justify-between text-sm font-medium">
-              <span>Obat Masuk</span>
-              <span>Obat Keluar</span>
-            </div>
-            {/* Grafiknya bisa ditambahkan nanti */}
-            <div className="bg-gray-100 h-32 rounded-md mt-4 flex items-center justify-center text-gray-400">
-              Grafik Pendapatan Harian
-            </div>
+          <div className="bg-gray-100 h-24 sm:h-32 rounded-md mt-3 sm:mt-4 flex items-center justify-center text-gray-400 text-xs sm:text-sm">
+            Grafik Pendapatan Harian
           </div>
         </div>
       </div>

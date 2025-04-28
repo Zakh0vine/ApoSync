@@ -1,28 +1,3 @@
-// import { Link } from "react-router-dom";
-
-// const Breadcrumb = ({ pageName }) => {
-//   return (
-//     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-//       <h2 className="text-title-md2 font-semibold text-black">
-//         {pageName}
-//       </h2>
-
-//       <nav>
-//         <ol className="flex items-center gap-1">
-//           <li>
-//             <Link className="font-medium" to="/">
-//               Dashboard /
-//             </Link>
-//           </li>
-//           <li className="font-medium text-primary">{pageName}</li>
-//         </ol>
-//       </nav>
-//     </div>
-//   );
-// };
-
-// export default Breadcrumb;
-
 import { Link } from "react-router-dom";
 
 const Breadcrumb = ({ pageName }) => {
@@ -39,9 +14,9 @@ const Breadcrumb = ({ pageName }) => {
       {/* Breadcrumb Right */}
       <div className="flex justify-end mt-2">
         <nav>
-          <ol className="flex items-center text-sm text-gray-600">
+          <ol className="flex items-center text-base text-gray-600">
             <li>
-              <Link to="/" className="hover:underline">
+              <Link to="/dashboard" className="hover:underline">
                 Dashboard
               </Link>
             </li>
