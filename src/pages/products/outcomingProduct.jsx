@@ -80,8 +80,10 @@ export default function IncomingProduct() {
               <label className="mb-2 font-semibold">Kategori</label>
               <select className="border border-black p-2 rounded-md">
                 <option value="">Pilih Kategori</option>
-                <option value="makanan">Makanan</option>
-                <option value="minuman">Minuman</option>
+                <option value="makanan">Obat Bebas</option>
+                <option value="minuman">Obat Keras</option>
+                <option value="minuman">Konsi</option>
+                <option value="minuman">Alkes</option>
               </select>
             </div>
 
