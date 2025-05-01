@@ -4,6 +4,7 @@ import { MdOutlinePersonOutline, MdOutlineInput } from "react-icons/md";
 import { LuAirplay } from "react-icons/lu";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { BiLogOut } from "react-icons/bi";
+import { RiHistoryLine } from "react-icons/ri";
 
 import Logo from "@/assets/logo.png";
 
@@ -30,6 +31,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       to: "/produk",
       icon: <MdOutlineInput className="size-6" />,
       label: "Produk",
+    },
+    {
+      to: "/riwayat",
+      icon: <RiHistoryLine className="size-6" />,
+      label: "Riwayat",
     },
     { to: "/masuk", icon: <BiLogOut className="size-6" />, label: "Keluar" },
   ];

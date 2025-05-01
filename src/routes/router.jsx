@@ -8,6 +8,7 @@ import EditProfile from "@/pages/profile/edit";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
 import Product from "@/pages/products/index";
+import History from "@/pages/history";
 import IncomingProduct from "@/pages/products/incomingProduct";
 import OutcomingProduct from "@/pages/products/outcomingProduct";
 
@@ -52,6 +53,10 @@ export default function Router() {
     {
       path: "/produk-keluar",
       element: <OutcomingProduct />,
+    },
+    {
+      path: "/riwayat",
+      element: <History />,
     },
     {
       path: "*",

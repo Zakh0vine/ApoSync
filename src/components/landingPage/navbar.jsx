@@ -43,19 +43,19 @@ export default function Navbar() {
 
   return (
     <nav className="shadow-md bg-white z-50 fixed w-full">
-      <div className="max-w-screen-2xl mx-auto flex justify-between items-center p-4 sm:px-10 lg:px-20">
+      <div className="max-w-screen-2xl mx-auto flex justify-between items-center p-4 sm:px-10 lg:px-32">
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <a href="#beranda">
-            <img src={Logo} alt="Logo" className="h-20 w-20" />
+            <img src={Logo} alt="Logo" className="h-14 w-h-14" />
           </a>
         </div>
 
         {/* Menu Desktop */}
         <ul
           className={`hidden lg:flex ${
-            isSmallScreen ? "space-x-1" : "space-x-16"
-          } text-[#145A7E] font-bold text-2xl`}
+            isSmallScreen ? "space-x-1" : "space-x-14"
+          } text-[#145A7E] font-bold text-xl`}
         >
           {menuItems.map((item) => (
             <li key={item.name}>
@@ -76,7 +76,7 @@ export default function Navbar() {
         {/* Button Contact */}
         <div className="hidden lg:block">
           <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            <Button className="font-medium text-2xl">Contact Us</Button>
+            <Button className="font-medium text-xl">Contact Us</Button>
           </a>
         </div>
 
@@ -93,8 +93,8 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-white px-4 py-6 absolute w-full top-24 left-0 shadow-md z-10">
-          <ul className="flex flex-col space-y-6 text-[#04364A] font-bold text-2xl text-center">
+        <div className="lg:hidden bg-white px-4 py-6 absolute w-full top-20 left-0 shadow-md z-10">
+          <ul className="flex flex-col space-y-6 text-[#04364A] font-bold text-xl text-center">
             {menuItems.map((item) => (
               <li key={item.name}>
                 <a
@@ -113,7 +113,7 @@ export default function Navbar() {
           </ul>
           <div className="text-center mt-4">
             <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-              <Button className="font-medium text-2xl">Contact Us</Button>
+              <Button className="font-medium text-xl">Contact Us</Button>
             </a>
           </div>
         </div>
