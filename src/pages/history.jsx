@@ -1,7 +1,5 @@
 import React from "react";
 import { IoIosSearch } from "react-icons/io";
-import { TbEdit } from "react-icons/tb";
-import { GoTrash } from "react-icons/go";
 
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";

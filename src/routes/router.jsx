@@ -8,9 +8,10 @@ import EditProfile from "@/pages/profile/edit";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
 import Product from "@/pages/products/index";
-import History from "@/pages/history";
 import IncomingProduct from "@/pages/products/incomingProduct";
 import OutcomingProduct from "@/pages/products/outcomingProduct";
+import History from "@/pages/history";
+import PharmacyReport from "@/pages/superAdmin/pharmacyReport";
 
 export default function Router() {
   const router = createBrowserRouter([
@@ -57,6 +58,10 @@ export default function Router() {
     {
       path: "/riwayat",
       element: <History />,
+    },
+    {
+      path: "/laporan",
+      element: <PharmacyReport />,
     },
     {
       path: "*",

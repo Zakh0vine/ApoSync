@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MdOutlinePersonOutline, MdOutlineInput } from "react-icons/md";
-import { LuAirplay } from "react-icons/lu";
+import { LuAirplay, LuChartColumnBig } from "react-icons/lu";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { BiLogOut } from "react-icons/bi";
 import { RiHistoryLine } from "react-icons/ri";
@@ -36,6 +36,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       to: "/riwayat",
       icon: <RiHistoryLine className="size-6" />,
       label: "Riwayat",
+    },
+    {
+      to: "/laporan",
+      icon: <LuChartColumnBig className="size-6" />,
+      label: "Laporan",
     },
     { to: "/masuk", icon: <BiLogOut className="size-6" />, label: "Keluar" },
   ];
