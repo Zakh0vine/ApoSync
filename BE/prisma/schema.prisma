@@ -1,52 +1,57 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "./node_modules/@prisma/client"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-model branch {
-  id       Int    @id @default(autoincrement())
-  name     String
-  location String
+generator client {
+  provider = "prisma-client-js"
 }
 
-model product {
-  id        Int              @id @default(autoincrement())
-  name      String
-  category  product_category
-  stock     Int
-  branchId  Int
-  createdAt DateTime         @default(now())
-  updatedAt DateTime
-
-  @@index([branchId], map: "Product_branchId_fkey")
-}
-
-model user {
+model User {
   id        Int       @id @default(autoincrement())
   name      String
-  email     String    @unique(map: "User_email_key")
-  password  String?   @db.VarChar(255)
-  role      user_role
-  branchId  Int
+  email     String    @unique
+  password  String
+  role      UserRole  @default(KARYAWAN)
   createdAt DateTime  @default(now())
-
-  @@index([branchId], map: "User_branchId_fkey")
+  updatedAt DateTime  @updatedAt
 }
 
-enum product_category {
-  OBAT_BEBAS
+model Product {
+  id        Int              @id @default(autoincrement())
+  code      String           @unique
+  name      String
+  brand     String
+  price     Int
+  category  ProductCategory
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  batches   ProductBatch[]   // Relasi ke batch
+}
+
+model ProductBatch {
+  id           Int       @id @default(autoincrement())
+  productId    Int
+  entryDate    DateTime
+  expiredDate  DateTime?    // Bisa null jika ALKES
+  stock        Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  product      Product      @relation(fields: [productId], references: [id])
+
+  @@index([productId, expiredDate])
+}
+
+enum ProductCategory {
+  OBAT_KERAS
   OBAT_BEBAS_TERBATAS
   KONSI
   ALKES
 }
 
-enum user_role {
+enum UserRole {
   KARYAWAN
-  MANAGER
   OWNER
 }

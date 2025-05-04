@@ -1,6 +1,4 @@
-// src/controllers/authController.js
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const prisma = require("../../prisma/client");
 const { generateToken } = require("../utils/jwt");
 
@@ -8,7 +6,7 @@ exports.register = async (req, res) => {
   if (!req.body) {
     return res.status(400).json({ message: "Body kosong" });
   }
-  const { name, email, password, role, branchId } = req.body;
+  const { name, email, password, role } = req.body;
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser)
@@ -22,7 +20,6 @@ exports.register = async (req, res) => {
         email,
         password: hashedPassword,
         role,
-        branchId,
       },
     });
 
@@ -49,15 +46,4 @@ exports.login = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
-
-exports.googleCallback = (req, res) => {
-  const { user, token } = req.user;
-  res.redirect(`${process.env.CLIENT_URL}/dashboard?token=${token}`);
-};
-
-exports.logout = (req, res) => {
-  req.logout(() => {
-    res.redirect(process.env.CLIENT_URL);
-  });
 };
