@@ -17,6 +17,7 @@ export default function History() {
       harga: "16.500/pcs",
       tanggal: "01-05-2025",
       status: "Masuk",
+      pj: "Fasha Agatha",
     },
     {
       id: 2,
@@ -27,6 +28,7 @@ export default function History() {
       harga: "25.000/pcs",
       tanggal: "01-05-2025",
       status: "Masuk",
+      pj: "Fasha Agatha",
     },
     {
       id: 3,
@@ -37,6 +39,7 @@ export default function History() {
       harga: "65.000/pcs",
       tanggal: "01-05-2025",
       status: "Keluar",
+      pj: "Fasha Agatha",
     },
     {
       id: 4,
@@ -47,6 +50,7 @@ export default function History() {
       harga: "4.500/pcs",
       tanggal: "01-05-2025",
       status: "Masuk",
+      pj: "Fasha Agatha",
     },
     {
       id: 5,
@@ -57,6 +61,7 @@ export default function History() {
       harga: "26.500/pcs",
       tanggal: "01-05-2025",
       status: "Keluar",
+      pj: "Fasha Agatha",
     },
     {
       id: 6,
@@ -67,6 +72,7 @@ export default function History() {
       harga: "18.000/pcs",
       tanggal: "01-05-2025",
       status: "Keluar",
+      pj: "Aditya Setiawan",
     },
     {
       id: 7,
@@ -77,6 +83,7 @@ export default function History() {
       harga: "5.000/pcs",
       tanggal: "01-05-2025",
       status: "Masuk",
+      pj: "Aditya Setiawan",
     },
     {
       id: 8,
@@ -87,6 +94,7 @@ export default function History() {
       harga: "54.000/pcs",
       tanggal: "01-05-2025",
       status: "Keluar",
+      pj: "Aditya Setiawan",
     },
     {
       id: 9,
@@ -97,6 +105,7 @@ export default function History() {
       harga: "38.000/pcs",
       tanggal: "01-05-2025",
       status: "Keluar",
+      pj: "Aditya Setiawan",
     },
     {
       id: 10,
@@ -107,6 +116,7 @@ export default function History() {
       harga: "380.000/pcs",
       tanggal: "01-05-2025",
       status: "Keluar",
+      pj: "Aditya Setiawan",
     },
   ];
 
@@ -147,6 +157,7 @@ export default function History() {
                   <th className="px-4 py-2">Harga</th>
                   <th className="px-4 py-2">Tanggal</th>
                   <th className="px-4 py-2 text-center">Masuk/Keluar</th>
+                  <th className="px-4 py-2">Nama PJ</th>
                 </tr>
               </thead>
               <tbody>
@@ -170,6 +181,7 @@ export default function History() {
                         {item.status}
                       </span>
                     </td>
+                    <td className="px-4 py-2">{item.pj}</td>
                   </tr>
                 ))}
               </tbody>

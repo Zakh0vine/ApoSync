@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MdOutlinePersonOutline, MdOutlineInput } from "react-icons/md";
+import { MdOutlineInput } from "react-icons/md";
 import { LuAirplay, LuChartColumnBig } from "react-icons/lu";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { BiLogOut } from "react-icons/bi";
@@ -12,11 +12,6 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const menuItems = [
-    {
-      to: "/profile",
-      icon: <MdOutlinePersonOutline className="size-6" />,
-      label: "Profile",
-    },
     {
       to: "/dashboard",
       icon: <LuAirplay className="size-6" />,
@@ -41,6 +36,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       to: "/laporan",
       icon: <LuChartColumnBig className="size-6" />,
       label: "Laporan",
+    },
+    {
+      to: "/user-manajemen",
+      icon: <LuAirplay className="size-6" />,
+      label: "User manajemen",
     },
     { to: "/masuk", icon: <BiLogOut className="size-6" />, label: "Keluar" },
   ];

@@ -1,10 +1,8 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import LandingPage from "@/pages/landingPage";
-import Register from "@/pages/auth/register";
 import Login from "@/pages/auth/login";
-import Profile from "@/pages/profile/index";
-import EditProfile from "@/pages/profile/edit";
+import Staff from "@/pages/staff/index";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
 import Product from "@/pages/products/index";
@@ -12,6 +10,7 @@ import IncomingProduct from "@/pages/products/incomingProduct";
 import OutcomingProduct from "@/pages/products/outcomingProduct";
 import History from "@/pages/history";
 import PharmacyReport from "@/pages/superAdmin/pharmacyReport";
+import UserSetting from "@/pages/superAdmin/userSetting";
 
 export default function Router() {
   const router = createBrowserRouter([
@@ -20,20 +19,12 @@ export default function Router() {
       element: <LandingPage />,
     },
     {
-      path: "/daftar",
-      element: <Register />,
-    },
-    {
       path: "/masuk",
       element: <Login />,
     },
     {
-      path: "/profile",
-      element: <Profile />,
-    },
-    {
-      path: "/profile/edit",
-      element: <EditProfile />,
+      path: "/staff",
+      element: <Staff />,
     },
     {
       path: "/dashboard",
@@ -62,6 +53,10 @@ export default function Router() {
     {
       path: "/laporan",
       element: <PharmacyReport />,
+    },
+    {
+      path: "/user-manajemen",
+      element: <UserSetting />,
     },
     {
       path: "*",

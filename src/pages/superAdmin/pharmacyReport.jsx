@@ -13,91 +13,81 @@ export default function PharmacyReport() {
       id: 1,
       nama: "Obat Kumur Anti Septik",
       merk: "Betadine",
-      tglMasuk: "15-02-2024",
-      tglKadaluwarsa: "15-02-2027",
       harga: "16.500/pcs",
-      jumlah: 77,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 2,
       nama: "Obat Anti Jamur",
       merk: "Fungoral",
-      tglMasuk: "25-02-2024",
-      tglKadaluwarsa: "25-02-2027",
       harga: "25.000/pcs",
-      jumlah: 60,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 3,
       nama: "Antibiotik Perisillin",
       merk: "Amoxicillin Trihydrate",
-      tglMasuk: "28-02-2024",
-      tglKadaluwarsa: "28-02-2027",
       harga: "65.000/pcs",
-      jumlah: 40,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 4,
       nama: "Obat Masuk Angin + Madu",
       merk: "Antangin JRG",
-      tglMasuk: "05-03-2024",
-      tglKadaluwarsa: "05-03-2027",
       harga: "4.500/pcs",
-      jumlah: 65,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 5,
       nama: "Obat Anti Inflamasi (OAINS)",
       merk: "Benostan",
-      tglMasuk: "15-03-2024",
-      tglKadaluwarsa: "15-03-2027",
       harga: "26.500/pcs",
-      jumlah: 39,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 6,
       nama: "Obat Anti Biang Keringat",
       merk: "Caladine Lotion",
-      tglMasuk: "29-03-2024",
-      tglKadaluwarsa: "29-03-2027",
       harga: "18.000/pcs",
-      jumlah: 54,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 7,
       nama: "Obat Sembelit",
       merk: "Dulcolax",
-      tglMasuk: "01-04-2024",
-      tglKadaluwarsa: "01-04-2027",
       harga: "5.000/pcs",
-      jumlah: 65,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 8,
       nama: "Inerson",
       merk: "Interbat",
-      tglMasuk: "06-04-2024",
-      tglKadaluwarsa: "06-04-2027",
       harga: "54.000/pcs",
-      jumlah: 20,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 9,
       nama: "Lodia Loperamide HCL",
       merk: "Sanbe",
-      tglMasuk: "26-04-2024",
-      tglKadaluwarsa: "26-04-2027",
       harga: "38.000/pcs",
-      jumlah: 20,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
     {
       id: 10,
       nama: "Kursi roda",
       merk: "GEA",
-      tglMasuk: "08-05-2024",
-      tglKadaluwarsa: "08-05-2027",
       harga: "380.000/pcs",
-      jumlah: 8,
+      harga_jual: "10.000",
+      jumlah: "20.000",
     },
   ];
 
@@ -117,22 +107,19 @@ export default function PharmacyReport() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-2 md:gap-3">
-          <div className="w-full sm:w-auto">
-            <Filter />
-          </div>
           <div className="w-full sm:w-auto mt-2 sm:mt-0">
-            <Button className="bg-[#6499E9] hover:bg-[#4e84d9] text-white px-6 py-2 rounded-lg font-semibold w-full sm:w-auto">
+            <Button className="bg-[#23B000] hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold w-full sm:w-auto">
               Print Laporan
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Produk Masuk */}
+      {/* Sisa Produk */}
       <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full">
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-          <h3 className="text-xl font-semibold">Produk Masuk</h3>
+          <h3 className="text-xl font-semibold">Sisa Produk</h3>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
@@ -156,8 +143,6 @@ export default function PharmacyReport() {
                   <th className="px-4 py-2">ID</th>
                   <th className="px-4 py-2">Nama Produk</th>
                   <th className="px-4 py-2">Merk Produk</th>
-                  <th className="px-4 py-2">Tgl Masuk</th>
-                  <th className="px-4 py-2">Tgl Kadaluwarsa</th>
                   <th className="px-4 py-2">Harga</th>
                   <th className="px-4 py-2">Jumlah</th>
                 </tr>
@@ -168,8 +153,6 @@ export default function PharmacyReport() {
                     <td className="px-4 py-2">{item.id}</td>
                     <td className="px-4 py-2">{item.nama}</td>
                     <td className="px-4 py-2">{item.merk}</td>
-                    <td className="px-4 py-2">{item.tglMasuk}</td>
-                    <td className="px-4 py-2">{item.tglKadaluwarsa}</td>
                     <td className="px-4 py-2">{item.harga}</td>
                     <td className="px-4 py-2">{item.jumlah}</td>
                   </tr>
@@ -185,11 +168,11 @@ export default function PharmacyReport() {
         </div>
       </div>
 
-      {/* Produk Keluar */}
+      {/* Laba Keuntungan*/}
       <div className="bg-white p-4 md:p-6 md:pt-10 mt-10 rounded-lg shadow-md w-full">
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-          <h3 className="text-xl font-semibold">Produk Masuk</h3>
+          <h3 className="text-xl font-semibold">Laba Keuntungan</h3>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
@@ -213,10 +196,9 @@ export default function PharmacyReport() {
                   <th className="px-4 py-2">ID</th>
                   <th className="px-4 py-2">Nama Produk</th>
                   <th className="px-4 py-2">Merk Produk</th>
-                  <th className="px-4 py-2">Tgl Masuk</th>
-                  <th className="px-4 py-2">Tgl Kadaluwarsa</th>
-                  <th className="px-4 py-2">Harga</th>
-                  <th className="px-4 py-2">Jumlah</th>
+                  <th className="px-4 py-2">Harga Modal+PPN</th>
+                  <th className="px-4 py-2">Harga Jual+25%</th>
+                  <th className="px-4 py-2">Total Keuntungan</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,9 +207,8 @@ export default function PharmacyReport() {
                     <td className="px-4 py-2">{item.id}</td>
                     <td className="px-4 py-2">{item.nama}</td>
                     <td className="px-4 py-2">{item.merk}</td>
-                    <td className="px-4 py-2">{item.tglMasuk}</td>
-                    <td className="px-4 py-2">{item.tglKadaluwarsa}</td>
                     <td className="px-4 py-2">{item.harga}</td>
+                    <td className="px-4 py-2">{item.harga_jual}</td>
                     <td className="px-4 py-2">{item.jumlah}</td>
                   </tr>
                 ))}

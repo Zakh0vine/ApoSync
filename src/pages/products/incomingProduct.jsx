@@ -55,6 +55,10 @@ export default function IncomingProduct() {
                 type="number"
                 className="border border-black p-2 rounded-md"
               />
+              <label className="mt-3 flex items-center gap-2 text-sm">
+                <input type="checkbox" className="w-4 h-4" />
+                Sudah termasuk PPN 11%
+              </label>
             </div>
 
             {/* Merk */}
@@ -107,7 +111,7 @@ export default function IncomingProduct() {
 
             {/* Stok */}
             <div className="flex flex-col">
-              <label className="mb-2 font-semibold">Stok</label>
+              <label className="mb-2 font-semibold">Stok per pcs</label>
               <input
                 type="number"
                 className="border border-black p-2 rounded-md"
