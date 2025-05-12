@@ -1,5 +1,3 @@
-// src/middlewares/authMiddleware.js
-const jwt = require("jsonwebtoken");
 const { verifyToken } = require("../utils/jwt");
 
 exports.protect = (req, res, next) => {

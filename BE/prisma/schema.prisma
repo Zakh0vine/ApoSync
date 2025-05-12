@@ -13,6 +13,7 @@ model User {
   email     String    @unique
   password  String
   role      UserRole  @default(KARYAWAN)
+  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -53,5 +54,5 @@ enum ProductCategory {
 
 enum UserRole {
   KARYAWAN
-  OWNER
+  SUPER_ADMIN
 }

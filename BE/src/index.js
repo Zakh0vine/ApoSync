@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const authRoute = require("./routes/authRoute");
 const productRoutes = require("./routes/productRoutes");
 const productBatchRoutes = require("./routes/productBatchRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", productRoutes);
 app.use("/api", productBatchRoutes);
 app.use("/auth", authRoute);
+app.use("/api/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
