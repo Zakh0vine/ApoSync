@@ -9,7 +9,7 @@ export default function IncomingProduct() {
 
   return (
     <Layout>
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 md:pt-10 mt-14 sm:pt-14">
         <Breadcrumb pageName="Produk Masuk" />
 
         {/* Tab */}

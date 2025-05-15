@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <div
       className={`
-        bg-white shadow-md h-screen fixed top-0 left-0 z-40 transform
+        bg-white shadow-md h-full fixed top-0 left-0 z-40 transform
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         md:translate-x-0 transition-transform duration-300 w-60
       `}

@@ -1,22 +1,16 @@
 import { useEffect, useState } from "react";
-import { TiPlusOutline } from "react-icons/ti";
 import { IoIosSearch } from "react-icons/io";
-import { TbEdit } from "react-icons/tb";
-import { GoTrash } from "react-icons/go";
 
-import { Button } from "@/components/button";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout";
+import Breadcrumb from "@/components/Breadcrumb";
+import Filter from "@/components/filter";
 import Pagination from "@/components/pagination";
-import Modal from "@/components/modal";
-import Staff from "@/pages/superAdmin/staff/index";
-import Breadcrumb from "@/components/breadcrumb";
-import { getUser } from "@/utils/api/userSetting/api";
+import { getHistory } from "@/utils/api/history/api";
 
-export default function UserSetting() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [user, setUser] = useState([]);
-  const [filteredUser, setFilteredUser] = useState([]);
-  const [userSearch, setUserSearch] = useState("");
+export default function History() {
+  const [history, setHistory] = useState([]);
+  const [filteredHistory, setFilteredHistory] = useState([]);
+  const [historySearch, setHistorySearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,19 +22,19 @@ export default function UserSetting() {
 
   async function fetchData() {
     try {
-      const result = await getUser();
-      setUser(result);
-      setFilteredUser(result);
+      const result = await getHistory();
+      setHistory(result);
+      setFilteredHistory(result);
     } catch (error) {
       console.log(error.toString());
     }
   }
 
-  const handleUserSearch = (e) => {
+  const handleHistorySearch = (e) => {
     const term = e.target.value;
-    setUserSearch(term);
+    setHistorySearch(term);
 
-    let filtered = user;
+    let filtered = history;
 
     if (selectedCategory) {
       filtered = filtered.filter(
@@ -57,13 +51,41 @@ export default function UserSetting() {
       );
     }
 
-    setFilteredUser(filtered);
+    setFilteredHistory(filtered);
     setCurrentPage(1);
   };
 
+  const handleFilterCategory = (category) => {
+    setSelectedCategory(category);
+
+    let filtered = history;
+
+    // Jika kategori dipilih (bukan null), filter berdasarkan kategori
+    if (category) {
+      filtered = filtered.filter((product) => product.kategori === category);
+    }
+
+    // Terapkan filter pencarian jika ada
+    if (historySearch.trim() !== "") {
+      filtered = filtered.filter(
+        (product) =>
+          product.nama.toLowerCase().includes(historySearch.toLowerCase()) ||
+          product.merk.toLowerCase().includes(historySearch.toLowerCase()) ||
+          product.kode.toLowerCase().includes(historySearch.toLowerCase())
+      );
+    }
+
+    setFilteredHistory(filtered);
+    setCurrentPage(1);
+  };
+
+  // Get current products for pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUser = filteredUser.slice(indexOfFirstItem, indexOfLastItem);
+  const currentHistory = filteredHistory.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
@@ -72,16 +94,13 @@ export default function UserSetting() {
 
   return (
     <Layout>
-      <div className="bg-white p-4 md:p-6 md:pt-10 mt-16 rounded-lg shadow-md w-full">
-        <Breadcrumb pageName="User Manajemen" />
+      <div className="bg-white p-4 md:p-6 md:pt-10 mt-16  rounded-lg shadow-md w-full">
+        {/* Breadcrumb */}
+        <Breadcrumb pageName="Riwayat" />
+
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#23B000] hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
-          >
-            Tambah Staff <TiPlusOutline className="size-5" />
-          </Button>
+          <h3 className="text-xl font-semibold">Riwayat Harian</h3>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
@@ -89,11 +108,15 @@ export default function UserSetting() {
               <input
                 type="text"
                 placeholder="Cari"
-                value={userSearch}
-                onChange={handleUserSearch}
+                value={historySearch}
+                onChange={handleHistorySearch}
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
+            <Filter
+              onSelectCategory={handleFilterCategory}
+              selectedCategory={selectedCategory}
+            />
           </div>
         </div>
 
@@ -103,29 +126,35 @@ export default function UserSetting() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-[#A7CAF3] text-left">
-                  <th className="px-4 py-2">No</th>
-                  <th className="px-4 py-2">Nama User</th>
-                  <th className="px-4 py-2">Role</th>
-                  <th className="px-4 py-2 text-center">Kontak</th>
-                  <th className="px-4 py-2 text-center">Status</th>
-                  <th className="px-4 py-2 text-center">Aksi</th>
+                  <th className="px-4 py-2">ID</th>
+                  <th className="px-4 py-2">Nama Produk</th>
+                  <th className="px-4 py-2">Merk Produk</th>
+                  <th className="px-4 py-2">Stok Barang</th>
+                  <th className="px-4 py-2">Kode Produk</th>
+                  <th className="px-4 py-2">Harga</th>
+                  <th className="px-4 py-2">Tanggal</th>
+                  <th className="px-4 py-2 text-center">Masuk/Keluar</th>
+                  <th className="px-4 py-2">Nama PJ</th>
                 </tr>
               </thead>
               <tbody>
-                {currentUser.length > 0 ? (
-                  currentUser.map((item) => (
+                {currentHistory.length > 0 ? (
+                  currentHistory.map((item) => (
                     <tr
                       key={item.id}
                       className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                     >
                       <td className="px-4 py-2">{item.id}</td>
                       <td className="px-4 py-2">{item.nama}</td>
-                      <td className="px-4 py-2">{item.role}</td>
-                      <td className="px-4 py-2 text-center">{item.kontak}</td>
+                      <td className="px-4 py-2">{item.merk}</td>
+                      <td className="px-4 py-2">{item.stok}</td>
+                      <td className="px-4 py-2">{item.kode}</td>
+                      <td className="px-4 py-2">{item.harga}</td>
+                      <td className="px-4 py-2">{item.tanggal}</td>
                       <td className="px-4 py-2 text-center">
                         <span
                           className={`px-3 py-1 text-sm rounded-md font-semibold text-white ${
-                            item.status === "Aktif"
+                            item.status === "Masuk"
                               ? "bg-[#23B000]"
                               : "bg-[#F02626]"
                           }`}
@@ -133,15 +162,7 @@ export default function UserSetting() {
                           {item.status}
                         </span>
                       </td>
-                      <td className="px-4 py-2">
-                        <div className="flex justify-center gap-2">
-                          <TbEdit
-                            onClick={() => setIsModalOpen(true)}
-                            className="size-5 cursor-pointer"
-                          />
-                          <GoTrash className="size-5 cursor-pointer" />
-                        </div>
-                      </td>
+                      <td className="px-4 py-2">{item.pj}</td>
                     </tr>
                   ))
                 ) : (
@@ -159,17 +180,13 @@ export default function UserSetting() {
         {/* Pagination */}
         <div className="mt-6">
           <Pagination
-            totalItems={filteredUser.length}
+            totalItems={filteredHistory.length}
             itemsPerPage={itemsPerPage}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             onPageChange={handlePageChange}
           />
         </div>
-
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <Staff isModal={true} onClose={() => setIsModalOpen(false)} />
-        </Modal>
       </div>
     </Layout>
   );

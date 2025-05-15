@@ -1,15 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 
-const Filter = () => {
+const Filter = ({ onSelectCategory, selectedCategory }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
 
+  const handleSelect = (category) => {
+    onSelectCategory(category);
+    setIsOpen(false); // Menutup dropdown setelah memilih
+  };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full md:w-auto">
+    <div className="relative w-full md:w-auto" ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
         className="flex items-center justify-between border border-[#6499E9] text-[#6499E9] p-2 rounded-lg text-base font-semibold w-full md:w-32"
@@ -19,19 +39,30 @@ const Filter = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 md:left-auto md:right-auto mt-2 rounded-md shadow-lg bg-transparent flex flex-col gap-1 w-full md:w-32">
-          <button className="bg-[#53DFB5] text-white font-semibold rounded-md py-2">
-            Obat Bebas
+        <div className="absolute left-0 right-0 md:left-auto md:right-auto mt-2 rounded-md shadow-lg bg-white flex flex-col gap-1 w-full md:w-32 p-1 z-10">
+          <button
+            onClick={() => handleSelect(null)}
+            className={`border text-black font-normal rounded-md py-2 ${
+              selectedCategory === null
+                ? "!text-[#6499E9] border-[#6499E9]"
+                : "bg-white border-[#D0D5DD]"
+            }`}
+          >
+            Semua
           </button>
-          <button className="bg-[#59C5F7] text-white font-semibold rounded-md py-2">
-            Obat Keras
-          </button>
-          <button className="bg-[#A6D000] text-white font-semibold rounded-md py-2">
-            Konsi
-          </button>
-          <button className="bg-[#FF949F] text-white font-semibold rounded-md py-2">
-            Alkes
-          </button>
+          {["Obat Bebas", "Obat Keras", "Konsi", "Alkes"].map((category) => (
+            <button
+              key={category}
+              onClick={() => handleSelect(category)}
+              className={`border text-black font-normal rounded-md py-2 ${
+                selectedCategory === category
+                  ? "!text-[#6499E9] border-[#6499E9]"
+                  : "bg-white border-[#D0D5DD]"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { Button } from "@/components/button";
 
-export default function Profile({ isModal = false, onClose }) {
+export default function Staff({ isModal = false, onClose }) {
   return (
     <div className={`${isModal ? "" : "min-h-screen"} bg-white`}>
       <div className="max-w-5xl mx-auto px-4">

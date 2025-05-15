@@ -1,31 +1,3 @@
-// import React, { useState } from "react";
-// import Navbar from "@/components/admin/navbar";
-// import Sidebar from "@/components/admin/sidebar";
-
-// const Layout = ({ children }) => {
-//   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-//   const handleSidebarToggle = () => {
-//     setIsSidebarOpen(!isSidebarOpen);
-//   };
-
-//   const handleSidebarClose = () => {
-//     setIsSidebarOpen(false);
-//   };
-
-//   return (
-//     <div className="flex">
-//       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-//       <div className="flex-1 md:ml-60 min-h-screen bg-gray-100">
-//         <Navbar onSidebarToggle={handleSidebarToggle} />
-//         <main className="p-6">{children}</main>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Layout;
-
 import React, { useState } from "react";
 import Navbar from "@/components/admin/navbar";
 import Sidebar from "@/components/admin/sidebar";

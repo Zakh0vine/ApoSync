@@ -6,7 +6,7 @@ import Pharmacy from "@/assets/pharmacy.png";
 export default function Dashboard() {
   return (
     <Layout>
-      <div className="p-4 sm:p-10 bg-white min-h-screen">
+      <div className="md:pt-10 mt-16 p-4 sm:p-10 sm:mt-16 bg-white min-h-screen">
         {/* Header - Improved responsive layout */}
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
@@ -63,21 +63,15 @@ export default function Dashboard() {
           <div className="space-y-3 sm:space-y-4">
             {/* Item Grafik */}
             {[
-              { label: "Obat Bebas Dan Terbatas", value: 120, width: "80%" },
-              { label: "Obat Keras", value: 40, width: "30%" },
-              { label: "Konsi", value: 80, width: "60%" },
-              { label: "Alkes", value: 10, width: "10%" },
+              { label: "Obat Bebas Dan Terbatas", value: 120 },
+              { label: "Obat Keras", value: 40 },
+              { label: "Konsi", value: 80 },
+              { label: "Alkes", value: 10 },
             ].map((item, index) => (
               <div key={index}>
                 <div className="flex justify-between text-base sm:text-base font-medium">
                   <span>{item.label}</span>
                   <span>{item.value}</span>
-                </div>
-                <div className="bg-gray-200 rounded-full h-2 sm:h-2.5 mt-1">
-                  <div
-                    className="bg-orange-400 h-2 sm:h-2.5 rounded-full"
-                    style={{ width: item.width }}
-                  ></div>
                 </div>
               </div>
             ))}

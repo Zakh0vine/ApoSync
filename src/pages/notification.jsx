@@ -4,7 +4,7 @@ import Layout from "@/components/layout";
 export default function Notification() {
   return (
     <Layout>
-      <div className="p-6 py-10 bg-white min-h-screen flex justify-center">
+      <div className="sm:mt-16 mt-16 p-6 py-10 bg-white min-h-screen flex justify-center">
         <div className="w-full max-w-5xl">
           {/* Title */}
           <div className="relative flex items-center mb-8">

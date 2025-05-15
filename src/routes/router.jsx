@@ -2,14 +2,14 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import LandingPage from "@/pages/landingPage";
 import Login from "@/pages/auth/login";
-import Staff from "@/pages/staff/index";
+import Staff from "@/pages/superAdmin/staff/index";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
-import Product from "@/pages/products/index";
-import IncomingProduct from "@/pages/products/incomingProduct";
-import OutcomingProduct from "@/pages/products/outcomingProduct";
-import History from "@/pages/history";
-import PharmacyReport from "@/pages/superAdmin/pharmacyReport";
+import Product from "@/pages/admin/products/index";
+import IncomingProduct from "@/pages/admin/products/incomingProduct";
+import OutcomingProduct from "@/pages/admin/products/outcomingProduct";
+import History from "@/pages/superAdmin/history";
+import Report from "@/pages/superAdmin/report";
 import UserSetting from "@/pages/superAdmin/userSetting";
 
 export default function Router() {
@@ -52,7 +52,7 @@ export default function Router() {
     },
     {
       path: "/laporan",
-      element: <PharmacyReport />,
+      element: <Report />,
     },
     {
       path: "/user-manajemen",
