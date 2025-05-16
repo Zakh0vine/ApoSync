@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { TiPlusOutline } from "react-icons/ti";
-import { IoIosSearch } from "react-icons/io";
 import { TbEdit } from "react-icons/tb";
 import { GoTrash } from "react-icons/go";
-import { IoMdClose } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
+import { IoIosSearch, IoMdClose, IoIosWarning } from "react-icons/io";
+import { FaRegCheckCircle } from "react-icons/fa";
 
 import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filter";
 import Pagination from "@/components/pagination";
-import { getProducts } from "@/utils/api/products/api";
+import { getProducts, deleteProduct } from "@/utils/api/products/api";
+import { Loader } from "@/components/loader";
+import { useToast } from "@/utils/toastify/toastProvider";
+import Delete from "@/utils/sweetalert/delete";
 
 export default function Produk() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -22,10 +26,9 @@ export default function Produk() {
   const [searchTerm, setSearchTerm] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -37,7 +40,60 @@ export default function Produk() {
       setProducts(result);
       setFilteredProducts(result);
     } catch (error) {
-      console.log(error.toString());
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="size-5" />
+            <span className="ml-2">Gagal Mendapatkan Data</span>
+          </div>
+        ),
+        description: <span className="ml-7">Data produk tidak ditemukan!</span>,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function onClickDelete(id) {
+    try {
+      const result = await Delete({
+        title: "Hapus data",
+        text: "Data yang terhapus tidak dapat dipulihkan!",
+      });
+
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        await deleteProduct(id);
+        toast.addToast({
+          variant: "deleted",
+          title: (
+            <div className="flex items-center">
+              <FaRegCheckCircle className="size-5" />
+              <span className="ml-2">Berhasil Menghapus Data</span>
+            </div>
+          ),
+          description: (
+            <span className="ml-7">
+              Data yang dihapus tidak dapat dipulihkan!
+            </span>
+          ),
+        });
+        fetchData();
+      }
+    } catch (error) {
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="size-5" />
+            <span className="ml-2">Gagal Menghapus Data!</span>
+          </div>
+        ),
+        description: <span className="ml-7">Data produk gagal dihapus!</span>,
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -169,53 +225,60 @@ export default function Produk() {
         <div className="w-full overflow-x-auto block">
           <div className="min-w-max w-full">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#A7CAF3] text-left">
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Nama Produk</th>
-                  <th className="px-4 py-2">Merk Produk</th>
-                  <th className="px-4 py-2">Stok Barang</th>
-                  <th className="px-4 py-2">Kode Produk</th>
-                  <th className="px-4 py-2">Harga</th>
-                  <th className="px-4 py-2 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentProducts.length > 0 ? (
-                  currentProducts.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
-                    >
-                      <td className="px-4 py-2">{item.id}</td>
-                      <td
-                        className="px-4 py-2 cursor-pointer hover:underline"
-                        onClick={() => openProductDetail(item)}
+            {isLoading ? (
+              <Loader fullScreen={false} className="py-14" />
+            ) : (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-[#A7CAF3] text-left">
+                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">Nama Produk</th>
+                    <th className="px-4 py-2">Merk Produk</th>
+                    <th className="px-4 py-2">Stok Barang</th>
+                    <th className="px-4 py-2">Kode Produk</th>
+                    <th className="px-4 py-2">Harga</th>
+                    <th className="px-4 py-2 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentProducts.length > 0 ? (
+                    currentProducts.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
-                        {item.nama}
-                      </td>
-                      <td className="px-4 py-2">{item.merk}</td>
-                      <td className="px-4 py-2">{item.stok}</td>
-                      <td className="px-4 py-2">{item.kode}</td>
-                      <td className="px-4 py-2">{item.harga}</td>
-                      <td className="px-4 py-2">
-                        <div className="flex justify-center gap-2">
-                          <TbEdit className="size-5 cursor-pointer" />
-                          <GoTrash className="size-5 cursor-pointer" />
-                        </div>
+                        <td className="px-4 py-2">{item.id}</td>
+                        <td
+                          className="px-4 py-2 cursor-pointer hover:underline"
+                          onClick={() => openProductDetail(item)}
+                        >
+                          {item.nama}
+                        </td>
+                        <td className="px-4 py-2">{item.merk}</td>
+                        <td className="px-4 py-2">{item.stok}</td>
+                        <td className="px-4 py-2">{item.kode}</td>
+                        <td className="px-4 py-2">{item.harga}</td>
+                        <td className="px-4 py-2">
+                          <div className="flex justify-center gap-2">
+                            <TbEdit className="size-5 cursor-pointer" />
+                            <GoTrash
+                              onClick={() => onClickDelete(item.id)}
+                              className="size-5 cursor-pointer"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="bg-[#9ABCF0]">
+                      <td colSpan="7" className="px-4 py-2 text-center">
+                        Tidak ada data yang sesuai
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#9ABCF0]">
-                    <td colSpan="7" className="px-4 py-2 text-center">
-                      Tidak ada data yang sesuai
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
