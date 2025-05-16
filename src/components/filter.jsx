@@ -44,8 +44,8 @@ const Filter = ({ onSelectCategory, selectedCategory }) => {
             onClick={() => handleSelect(null)}
             className={`border text-black font-normal rounded-md py-2 ${
               selectedCategory === null
-                ? "!text-[#6499E9] border-[#6499E9]"
-                : "bg-white border-[#D0D5DD]"
+                ? "!text-[#6499E9] border-[#6499E9] hover:bg-gray-200"
+                : "bg-white border-[#D0D5DD] hover:bg-gray-200"
             }`}
           >
             Semua
@@ -56,8 +56,8 @@ const Filter = ({ onSelectCategory, selectedCategory }) => {
               onClick={() => handleSelect(category)}
               className={`border text-black font-normal rounded-md py-2 ${
                 selectedCategory === category
-                  ? "!text-[#6499E9] border-[#6499E9]"
-                  : "bg-white border-[#D0D5DD]"
+                  ? "!text-[#6499E9] border-[#6499E9] hover:bg-gray-200"
+                  : "bg-white border-[#D0D5DD] hover:bg-gray-200"
               }`}
             >
               {category}

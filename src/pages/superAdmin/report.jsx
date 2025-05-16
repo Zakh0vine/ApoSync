@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { IoIosSearch } from "react-icons/io";
+import { IoIosSearch, IoIosWarning } from "react-icons/io";
+import { FaRegCheckCircle } from "react-icons/fa";
 
 import reportImage from "@/assets/report.png";
 import Layout from "@/components/Layout";
@@ -7,8 +8,11 @@ import Filter from "@/components/filter";
 import { Button } from "@/components/button";
 import Pagination from "@/components/pagination";
 import { getReport } from "@/utils/api/report/api";
+import { Loader } from "@/components/loader";
+import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function PharmacyReport() {
+  const toast = useToast();
   const [report, setReport] = useState([]);
   const [filteredReport, setFilteredReport] = useState([]);
   const [reportSearch, setReportSearch] = useState("");
@@ -22,6 +26,7 @@ export default function PharmacyReport() {
   const [currentPage2, setCurrentPage2] = useState(1);
 
   const [itemsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -35,7 +40,20 @@ export default function PharmacyReport() {
       setReport2(result);
       setFilteredReport2(result);
     } catch (error) {
-      console.log(error.toString());
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="size-5" />
+            <span className="ml-2">Gagal Mendapatkan Laporan</span>
+          </div>
+        ),
+        description: (
+          <span className="ml-7">Data laporan tidak ditemukan!</span>
+        ),
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -78,8 +96,7 @@ export default function PharmacyReport() {
       filtered = filtered.filter(
         (product) =>
           product.nama.toLowerCase().includes(reportSearch.toLowerCase()) ||
-          product.merk.toLowerCase().includes(reportSearch.toLowerCase()) ||
-          product.kode.toLowerCase().includes(reportSearch.toLowerCase())
+          product.merk.toLowerCase().includes(reportSearch.toLowerCase())
       );
     }
 
@@ -96,6 +113,8 @@ export default function PharmacyReport() {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  //============================================================================
 
   const handleReportSearch2 = (e) => {
     const term = e.target.value;
@@ -204,39 +223,43 @@ export default function PharmacyReport() {
         <div className="w-full overflow-x-auto block">
           <div className="min-w-max w-full">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#A7CAF3] text-left">
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Nama Produk</th>
-                  <th className="px-4 py-2">Merk Produk</th>
-                  <th className="px-4 py-2">Harga</th>
-                  <th className="px-4 py-2">Jumlah</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentReport.length > 0 ? (
-                  currentReport.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
-                    >
-                      <td className="px-4 py-2">{item.id}</td>
-                      <td className="px-4 py-2">{item.nama}</td>
-                      <td className="px-4 py-2">{item.merk}</td>
-                      <td className="px-4 py-2">{item.harga}</td>
-                      <td className="px-4 py-2">{item.jumlah}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#9ABCF0]">
-                    <td colSpan="10" className="px-4 py-2 text-center">
-                      Tidak ada data yang sesuai
-                    </td>
+            {isLoading ? (
+              <Loader fullScreen={false} className="py-14" />
+            ) : (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-[#A7CAF3] text-left">
+                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">Nama Produk</th>
+                    <th className="px-4 py-2">Merk Produk</th>
+                    <th className="px-4 py-2">Harga</th>
+                    <th className="px-4 py-2">Jumlah</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {currentReport.length > 0 ? (
+                    currentReport.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
+                      >
+                        <td className="px-4 py-2">{item.id}</td>
+                        <td className="px-4 py-2">{item.nama}</td>
+                        <td className="px-4 py-2">{item.merk}</td>
+                        <td className="px-4 py-2">{item.harga}</td>
+                        <td className="px-4 py-2">{item.jumlah}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="bg-[#9ABCF0]">
+                      <td colSpan="10" className="px-4 py-2 text-center">
+                        Tidak ada data yang sesuai
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -278,41 +301,45 @@ export default function PharmacyReport() {
         <div className="w-full overflow-x-auto block">
           <div className="min-w-max w-full">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#A7CAF3] text-left">
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Nama Produk</th>
-                  <th className="px-4 py-2">Merk Produk</th>
-                  <th className="px-4 py-2">Harga Modal+PPN</th>
-                  <th className="px-4 py-2">Harga Jual+25%</th>
-                  <th className="px-4 py-2">Total Keuntungan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentReport2.length > 0 ? (
-                  currentReport2.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
-                    >
-                      <td className="px-4 py-2">{item.id}</td>
-                      <td className="px-4 py-2">{item.nama}</td>
-                      <td className="px-4 py-2">{item.merk}</td>
-                      <td className="px-4 py-2">{item.harga}</td>
-                      <td className="px-4 py-2">{item.harga_jual}</td>
-                      <td className="px-4 py-2">{item.jumlah}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#9ABCF0]">
-                    <td colSpan="10" className="px-4 py-2 text-center">
-                      Tidak ada data yang sesuai
-                    </td>
+            {isLoading ? (
+              <Loader fullScreen={false} className="py-14" />
+            ) : (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-[#A7CAF3] text-left">
+                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">Nama Produk</th>
+                    <th className="px-4 py-2">Merk Produk</th>
+                    <th className="px-4 py-2">Harga Modal+PPN</th>
+                    <th className="px-4 py-2">Harga Jual+25%</th>
+                    <th className="px-4 py-2">Total Keuntungan</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {currentReport2.length > 0 ? (
+                    currentReport2.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
+                      >
+                        <td className="px-4 py-2">{item.id}</td>
+                        <td className="px-4 py-2">{item.nama}</td>
+                        <td className="px-4 py-2">{item.merk}</td>
+                        <td className="px-4 py-2">{item.harga}</td>
+                        <td className="px-4 py-2">{item.harga_jual}</td>
+                        <td className="px-4 py-2">{item.jumlah}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="bg-[#9ABCF0]">
+                      <td colSpan="10" className="px-4 py-2 text-center">
+                        Tidak ada data yang sesuai
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 

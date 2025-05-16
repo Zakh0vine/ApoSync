@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
-import { IoIosSearch } from "react-icons/io";
+import { IoIosSearch, IoIosWarning } from "react-icons/io";
+import { FaRegCheckCircle } from "react-icons/fa";
 
 import Layout from "@/components/layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filter";
 import Pagination from "@/components/pagination";
 import { getHistory } from "@/utils/api/history/api";
+import { Loader } from "@/components/loader";
+import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function History() {
+  const toast = useToast();
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
   const [historySearch, setHistorySearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -26,7 +30,20 @@ export default function History() {
       setHistory(result);
       setFilteredHistory(result);
     } catch (error) {
-      console.log(error.toString());
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="size-5" />
+            <span className="ml-2">Gagal Mendapatkan Riwayat</span>
+          </div>
+        ),
+        description: (
+          <span className="ml-7">Data riwayat tidak ditemukan!</span>
+        ),
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -123,57 +140,61 @@ export default function History() {
         <div className="w-full overflow-x-auto block">
           <div className="min-w-max w-full">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#A7CAF3] text-left">
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Nama Produk</th>
-                  <th className="px-4 py-2">Merk Produk</th>
-                  <th className="px-4 py-2">Stok Barang</th>
-                  <th className="px-4 py-2">Kode Produk</th>
-                  <th className="px-4 py-2">Harga</th>
-                  <th className="px-4 py-2">Tanggal</th>
-                  <th className="px-4 py-2 text-center">Masuk/Keluar</th>
-                  <th className="px-4 py-2">Nama PJ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentHistory.length > 0 ? (
-                  currentHistory.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
-                    >
-                      <td className="px-4 py-2">{item.id}</td>
-                      <td className="px-4 py-2">{item.nama}</td>
-                      <td className="px-4 py-2">{item.merk}</td>
-                      <td className="px-4 py-2">{item.stok}</td>
-                      <td className="px-4 py-2">{item.kode}</td>
-                      <td className="px-4 py-2">{item.harga}</td>
-                      <td className="px-4 py-2">{item.tanggal}</td>
-                      <td className="px-4 py-2 text-center">
-                        <span
-                          className={`px-3 py-1 text-sm rounded-md font-semibold text-white ${
-                            item.status === "Masuk"
-                              ? "bg-[#23B000]"
-                              : "bg-[#F02626]"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">{item.pj}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#9ABCF0]">
-                    <td colSpan="10" className="px-4 py-2 text-center">
-                      Tidak ada data yang sesuai
-                    </td>
+            {isLoading ? (
+              <Loader fullScreen={false} className="py-14" />
+            ) : (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-[#A7CAF3] text-left">
+                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">Nama Produk</th>
+                    <th className="px-4 py-2">Merk Produk</th>
+                    <th className="px-4 py-2">Stok Barang</th>
+                    <th className="px-4 py-2">Kode Produk</th>
+                    <th className="px-4 py-2">Harga</th>
+                    <th className="px-4 py-2">Tanggal</th>
+                    <th className="px-4 py-2 text-center">Masuk/Keluar</th>
+                    <th className="px-4 py-2">Nama PJ</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {currentHistory.length > 0 ? (
+                    currentHistory.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
+                      >
+                        <td className="px-4 py-2">{item.id}</td>
+                        <td className="px-4 py-2">{item.nama}</td>
+                        <td className="px-4 py-2">{item.merk}</td>
+                        <td className="px-4 py-2">{item.stok}</td>
+                        <td className="px-4 py-2">{item.kode}</td>
+                        <td className="px-4 py-2">{item.harga}</td>
+                        <td className="px-4 py-2">{item.tanggal}</td>
+                        <td className="px-4 py-2 text-center">
+                          <span
+                            className={`px-3 py-1 text-sm rounded-md font-semibold text-white ${
+                              item.status === "Masuk"
+                                ? "bg-[#23B000]"
+                                : "bg-[#F02626]"
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">{item.pj}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="bg-[#9ABCF0]">
+                      <td colSpan="10" className="px-4 py-2 text-center">
+                        Tidak ada data yang sesuai
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
