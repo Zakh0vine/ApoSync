@@ -5,7 +5,7 @@ function Toast({ title, description, variant = "default" }) {
     default: "bg-[#C8F3DD] border-[#23B000] text-black",
     destructive: "bg-[#F02626] border-[#F02626] text-white",
     deleted: "bg-[#23B000] border-[#23B000] text-white",
-    info: "bg-[#6499E9] border-[#2E56BD] text-white",
+    edited: "bg-[#6499E9] border-[#2E56BD] text-white",
   };
 
   return (

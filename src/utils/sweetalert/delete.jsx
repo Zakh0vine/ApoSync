@@ -30,6 +30,7 @@ const Delete = async ({ title, text, className }) => {
         confirmButtonText: "Hapus",
         cancelButtonText: "Batal",
         reverseButtons: true,
+        allowOutsideClick: false,
       })
       .then((result) => {
         resolve(result);

@@ -40,6 +40,7 @@ const Status = async ({ title, text, className = "", status }) => {
         confirmButtonText: isAktif ? "Nonaktifkan" : "Aktifkan",
         cancelButtonText: "Batal",
         reverseButtons: true,
+        allowOutsideClick: false,
       })
       .then((result) => {
         resolve(result);
