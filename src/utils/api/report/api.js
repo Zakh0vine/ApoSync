@@ -8,6 +8,6 @@ export const getReport = async () => {
 
     return response.data;
   } catch (error) {
-    throw Error("Failed to get report");
+    throw Error("Gagal mendapatkan laporan");
   }
 };

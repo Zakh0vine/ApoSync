@@ -6,7 +6,20 @@ export const getProducts = async () => {
 
     return response.data;
   } catch (error) {
-    throw Error("Failed to get products");
+    throw Error("Gagal mendapatkan produk");
+  }
+};
+
+export const createProduct = async (data) => {
+  try {
+    const newData = {
+      ...data,
+    };
+    const response = await axiosWithConfig.post("/products", newData);
+
+    return response.data;
+  } catch (error) {
+    throw Error("Gagal membuat produk baru");
   }
 };
 
@@ -16,6 +29,6 @@ export const deleteProduct = async (id) => {
 
     return response.data;
   } catch (error) {
-    throw Error("Failed to delete a product");
+    throw Error("Gagal menghapus produk");
   }
 };

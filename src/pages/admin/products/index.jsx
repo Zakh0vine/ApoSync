@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { debounce } from "lodash";
 import { TiPlusOutline } from "react-icons/ti";
 import { TbEdit } from "react-icons/tb";
 import { GoTrash } from "react-icons/go";
@@ -15,6 +16,7 @@ import { getProducts, deleteProduct } from "@/utils/api/products/api";
 import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 import Delete from "@/utils/sweetalert/delete";
+import Edit from "@/utils/sweetalert/edit";
 
 export default function Produk() {
   const navigate = useNavigate();
@@ -31,7 +33,10 @@ export default function Produk() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    const delayedFetchData = debounce(fetchData, 800);
+    delayedFetchData();
+
+    return () => delayedFetchData.cancel();
   }, []);
 
   async function fetchData() {
@@ -55,10 +60,52 @@ export default function Produk() {
     }
   }
 
+  async function onClickEdit(id) {
+    try {
+      const result = await Edit({
+        title: "Edit Data!",
+        text: "Data yang sudah diedit dapat diedit kembali:)",
+      });
+
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        await editProduct(id);
+        toast.addToast({
+          variant: "edited",
+          title: (
+            <div className="flex items-center">
+              <FaRegCheckCircle className="size-5" />
+              <span className="ml-2">Data telah diedit</span>
+            </div>
+          ),
+          description: (
+            <span className="ml-7">
+              Data yang sudah diedit dapat diedit kembali
+            </span>
+          ),
+        });
+        fetchData();
+      }
+    } catch (error) {
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="size-5" />
+            <span className="ml-2">Gagal Mengedit Data!</span>
+          </div>
+        ),
+        description: <span className="ml-7">Data produk gagal diedit!</span>,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function onClickDelete(id) {
     try {
       const result = await Delete({
-        title: "Hapus data",
+        title: "Hapus Data!",
         text: "Data yang terhapus tidak dapat dipulihkan!",
       });
 
@@ -260,7 +307,10 @@ export default function Produk() {
                         <td className="px-4 py-2">{item.harga}</td>
                         <td className="px-4 py-2">
                           <div className="flex justify-center gap-2">
-                            <TbEdit className="size-5 cursor-pointer" />
+                            <TbEdit
+                              onClick={() => onClickEdit(item.id)}
+                              className="size-5 cursor-pointer"
+                            />
                             <GoTrash
                               onClick={() => onClickDelete(item.id)}
                               className="size-5 cursor-pointer"
@@ -297,10 +347,7 @@ export default function Produk() {
         {selectedProduct && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             {/* Semi-transparent dark background */}
-            <div
-              className="absolute inset-0 bg-black bg-opacity-50"
-              onClick={closeProductDetail}
-            ></div>
+            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
             {/* Modal Content */}
             <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-y-auto z-10 relative">

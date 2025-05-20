@@ -32,6 +32,14 @@ const Pagination = ({
     }
   }, [currentPage, onPageChange]);
 
+  // Handle auto-go to previous page if current page becomes invalid
+  useEffect(() => {
+    const newTotalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+    if (currentPage > newTotalPages) {
+      setCurrentPage(newTotalPages);
+    }
+  }, [totalItems, currentPage, itemsPerPage, setCurrentPage]);
+
   // Create page buttons array
   const getPageNumbers = () => {
     const pageNumbers = [];

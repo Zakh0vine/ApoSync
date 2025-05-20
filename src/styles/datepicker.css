@@ -1,0 +1,88 @@
+.calendar-popup {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.weekday {
+  color: #64748b;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 8px;
+}
+
+.day {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.day:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.day.selected {
+  background: #6499e9; /* Highlight color */
+  color: white;
+}
+
+.day.today {
+  border: 2px solid #a3abb5; /* Today's date border */
+}
+
+/* Dark Mode for Calendar Popup */
+.dark .calendar-popup {
+  background: #24303f;
+  border: 1px solid #1b2732;
+  color: white;
+}
+
+.dark .calendar-header {
+  border-bottom: 1px solid #1b2732;
+}
+
+.dark .calendar-weekdays .weekday {
+  color: #9ca3af; /* Slightly lighter color for weekdays */
+}
+
+.dark .day {
+  color: white;
+}
+
+.dark .day.selected {
+  background: #3c50e0; /* Same highlight color */
+  color: white;
+}
+
+.dark .day.today {
+  border: 2px solid #4b5563; /* Lighter border for today */
+}
+
+.dark .day:hover {
+  background: rgba(255, 255, 255, 0.1); /* Slight hover effect in dark mode */
+}
