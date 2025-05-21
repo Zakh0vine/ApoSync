@@ -10,7 +10,7 @@ function Select(props) {
       </label>
       <select
         className={clsx(
-          "border border-black rounded-md text-black p-2 focus:outline-none w-full",
+          "border border-black rounded-md text-black p-2 focus:outline-none w-full cursor-pointer",
           error && "border-red-500"
         )}
         defaultValue=""

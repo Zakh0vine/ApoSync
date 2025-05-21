@@ -112,7 +112,7 @@ const DateInput = ({
           type="text"
           className={`form-datepicker w-full rounded border-[1.5px] ${
             error ? "border-red-500" : "border-black"
-          } border border-black rounded-md text-black p-2 focus:outline-none w-full mt-2`}
+          } border border-black rounded-md text-black p-2 focus:outline-none w-full mt-2 cursor-pointer`}
           value={formatDateDisplay(selectedDate)}
           onClick={() => setIsCalendarOpen(!isCalendarOpen)}
           readOnly

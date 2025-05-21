@@ -1,10 +1,10 @@
 import * as z from "zod";
 
-export const productSchema = z.object({
+export const outComingSchema = z.object({
   nama: z.string().min(1, { message: "Nama produk harus diisi" }),
   harga: z.number().min(1, { message: "Harga produk harus diisi" }),
   merk: z.string().min(1, { message: "Merk harus diisi" }),
-  tanggal_masuk: z.string().min(1, { message: "Tanggal masuk harus diisi" }),
+  tanggal_keluar: z.string().min(1, { message: "Tanggal masuk harus diisi" }),
   kategori: z.string().min(1, { message: "Kategori harus diisi" }),
   kadaluwarsa: z
     .string()

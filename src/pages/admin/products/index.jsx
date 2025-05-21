@@ -17,6 +17,7 @@ import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 import Delete from "@/utils/sweetalert/delete";
 import Edit from "@/utils/sweetalert/edit";
+import { formatNumber } from "@/utils/formatter/formatNumber";
 
 export default function Produk() {
   const navigate = useNavigate();
@@ -69,22 +70,7 @@ export default function Produk() {
 
       if (result.isConfirmed) {
         setIsLoading(true);
-        await editProduct(id);
-        toast.addToast({
-          variant: "edited",
-          title: (
-            <div className="flex items-center">
-              <FaRegCheckCircle className="size-5" />
-              <span className="ml-2">Data telah diedit</span>
-            </div>
-          ),
-          description: (
-            <span className="ml-7">
-              Data yang sudah diedit dapat diedit kembali
-            </span>
-          ),
-        });
-        fetchData();
+        navigate(`/produk-masuk/edit/${id}`);
       }
     } catch (error) {
       toast.addToast({
@@ -304,7 +290,9 @@ export default function Produk() {
                         <td className="px-4 py-2">{item.merk}</td>
                         <td className="px-4 py-2">{item.stok}</td>
                         <td className="px-4 py-2">{item.kode}</td>
-                        <td className="px-4 py-2">{item.harga}</td>
+                        <td className="px-4 py-2">
+                          {formatNumber(item.harga)}
+                        </td>
                         <td className="px-4 py-2">
                           <div className="flex justify-center gap-2">
                             <TbEdit
