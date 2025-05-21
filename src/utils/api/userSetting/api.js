@@ -8,7 +8,23 @@ export const getUser = async () => {
 
     return response.data;
   } catch (error) {
-    throw Error("Failed to get user setting");
+    throw Error("Gagal mendapatkan user manajemen");
+  }
+};
+
+export const createUser = async (data) => {
+  try {
+    const newData = {
+      ...data,
+    };
+    const response = await axiosWithConfig.post(
+      "https://68260c30397e48c91314c76a.mockapi.io/api/user_setting",
+      newData
+    );
+
+    return response.data;
+  } catch (error) {
+    throw Error("Gagal membuat user baru");
   }
 };
 

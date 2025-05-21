@@ -8,12 +8,12 @@ import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
 import Pagination from "@/components/pagination";
 import Modal from "@/components/modal";
-import Staff from "@/pages/superAdmin/staff/index";
 import Breadcrumb from "@/components/breadcrumb";
 import { getUser, updateUser } from "@/utils/api/userSetting/api";
 import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 import Status from "@/utils/sweetalert/status";
+import StaffModal from "@/pages/superAdmin/user/userModal";
 
 export default function UserSetting() {
   const toast = useToast();
@@ -25,6 +25,7 @@ export default function UserSetting() {
   const [itemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -132,11 +133,27 @@ export default function UserSetting() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUser = filteredUser.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItem = filteredUser.slice(indexOfFirstItem, indexOfLastItem);
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+  };
+
+  const handleEditUser = (user) => {
+    setCurrentUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleAddUser = () => {
+    setCurrentUser(null);
+    setIsModalOpen(true);
+  };
+
+  const handleSuccess = () => {
+    fetchData();
+    setIsModalOpen(false);
+    setCurrentUser(null);
   };
 
   return (
@@ -146,7 +163,7 @@ export default function UserSetting() {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <Button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleAddUser}
             className="bg-[#23B000] hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
           >
             Tambah Staff <TiPlusOutline className="size-5" />
@@ -184,14 +201,16 @@ export default function UserSetting() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentUser.length > 0 ? (
-                    currentUser.map((item) => (
+                  {currentItem.length > 0 ? (
+                    currentItem.map((item) => (
                       <tr
                         key={item.id}
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
                         <td className="px-4 py-2">{item.id}</td>
-                        <td className="px-4 py-2">{item.nama}</td>
+                        <td className="px-4 py-2">
+                          {item.nama_depan} {item.nama_belakang}
+                        </td>
                         <td className="px-4 py-2">{item.role}</td>
                         <td className="px-4 py-2 text-center">{item.kontak}</td>
                         <td className="px-4 py-2">
@@ -216,7 +235,7 @@ export default function UserSetting() {
                         <td className="px-4 py-2">
                           <div className="flex justify-center gap-2">
                             <TbEdit
-                              onClick={() => setIsModalOpen(true)}
+                              onClick={() => handleEditUser(item)}
                               className="size-5 cursor-pointer"
                             />
                           </div>
@@ -248,7 +267,11 @@ export default function UserSetting() {
         </div>
 
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <Staff isModal={true} onClose={() => setIsModalOpen(false)} />
+          <StaffModal
+            userData={currentUser}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={handleSuccess}
+          />
         </Modal>
       </div>
     </Layout>

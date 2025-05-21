@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import LandingPage from "@/pages/landingPage";
 import Login from "@/pages/auth/login";
-import Staff from "@/pages/superAdmin/staff/staffModal";
+import Staff from "@/pages/superAdmin/user/userModal";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
 import Product from "@/pages/admin/products/index";
@@ -41,6 +41,10 @@ export default function Router() {
     },
     {
       path: "/produk-masuk",
+      element: <IncomingProduct />,
+    },
+    {
+      path: "/produk-masuk/edit/:id",
       element: <IncomingProduct />,
     },
     {
