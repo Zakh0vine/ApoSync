@@ -1,10 +1,15 @@
-const prisma = require("../../prisma/client");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 const bcrypt = require("bcryptjs");
 
-// Ambil semua user
+// Util untuk validasi email
+const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+// Mendapatkan semua users (tanpa SUPER_ADMIN)
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
+      where: { role: { not: "SUPER_ADMIN" } }, // ❗ filter di sini
       select: {
         id: true,
         name: true,
@@ -12,24 +17,27 @@ exports.getAllUsers = async (req, res) => {
         role: true,
         isActive: true,
         createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mendapatkan daftar user" });
   }
 };
 
-// Ambil user berdasarkan ID
+// Mendapatkan user by ID (tanpa SUPER_ADMIN)
 exports.getUserById = async (req, res) => {
-  const userId = req.params.id;
-  // Validasi: pastikan ID adalah angka
-  if (isNaN(userId)) {
-    return res.status(400).json({ message: "ID user harus berupa angka." });
-  }
+  const { id } = req.params;
+
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(id) },
       select: {
         id: true,
         name: true,
@@ -37,136 +45,214 @@ exports.getUserById = async (req, res) => {
         role: true,
         isActive: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 
-    if (!user) {
+    if (!user || user.role === "SUPER_ADMIN") {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mendapatkan detail user" });
   }
 };
 
-// Update user
+// Update user (tidak bisa ubah role, validasi email)
 exports.updateUser = async (req, res) => {
-  const { name, email, role, password } = req.body;
+  const { id } = req.params;
+  const { name, email, password } = req.body;
 
   try {
-    const targetUser = await prisma.user.findUnique({
-      where: { id: parseInt(req.params.id) },
+    const existingUser = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
     });
 
-    if (!targetUser) {
+    if (!existingUser || existingUser.role === "SUPER_ADMIN") {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    const currentUserRole = req.user.role;
+    const updateData = {
+      name: name || existingUser.name,
+      email: email || existingUser.email,
+    };
 
-    // Tidak boleh ubah role SUPER_ADMIN
-    if (targetUser.role === "SUPER_ADMIN" && role && role !== "SUPER_ADMIN") {
-      return res.status(403).json({
-        message: "Anda tidak dapat mengubah role user SUPER_ADMIN.",
-      });
-    }
-
-    // Hanya SUPER_ADMIN yang boleh mengubah role user lain
-    if (role && targetUser.role !== role) {
-      if (currentUserRole !== "SUPER_ADMIN") {
-        return res.status(403).json({
-          message: "Hanya SUPER_ADMIN yang dapat mengubah role pengguna.",
-        });
-      }
-    }
-
-    const updateData = { name, email };
-
-    if (role) {
-      updateData.role = role;
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ message: "Format email tidak valid" });
     }
 
     if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      updateData.password = hashedPassword;
+      if (password.length < 6) {
+        return res.status(400).json({
+          message: "Password minimal 6 karakter",
+        });
+      }
+      updateData.password = await bcrypt.hash(password, 10);
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(id) },
       data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    res.json(updatedUser);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({
+      message: "User berhasil diupdate",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2002" && error.meta?.target?.includes("email")) {
+      return res.status(400).json({ message: "Email sudah digunakan" });
+    }
+    res.status(500).json({ message: "Gagal mengupdate user" });
   }
 };
 
-// Aktifkan/nonaktifkan user
-// Aktifkan/nonaktifkan user
+// Toggle aktif/nonaktif
 exports.toggleActive = async (req, res) => {
-  try {
-    const currentUser = req.user; // dari middleware
-    const targetUser = await prisma.user.findUnique({
-      where: { id: parseInt(req.params.id) },
-    });
+  const { id } = req.params;
 
-    if (!targetUser) {
-      return res.status(404).json({ message: "User tidak ditemukan" });
-    }
-
-    // Tidak boleh menonaktifkan/aktifkan akun SUPER_ADMIN
-    if (targetUser.role === "SUPER_ADMIN") {
-      return res.status(403).json({
-        message: "Akun SUPER_ADMIN tidak dapat diaktifkan/dinonaktifkan.",
-      });
-    }
-
-    // Hanya SUPER_ADMIN yang boleh toggle user lain
-    if (currentUser.role !== "SUPER_ADMIN") {
-      return res.status(403).json({
-        message: "Hanya SUPER_ADMIN yang dapat mengubah status aktif pengguna.",
-      });
-    }
-
-    const updated = await prisma.user.update({
-      where: { id: targetUser.id },
-      data: { isActive: !targetUser.isActive },
-    });
-
-    res.json({
-      message: `User telah ${
-        updated.isActive ? "diaktifkan" : "dinonaktifkan"
-      }`,
-      user: updated,
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Hapus user (tambahan baru)
-exports.deleteUser = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(id) },
     });
 
-    if (!user) {
+    if (!user || user.role === "SUPER_ADMIN") {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    if (user.role === "SUPER_ADMIN") {
-      return res.status(403).json({
-        message: "Akun SUPER_ADMIN tidak boleh dihapus.",
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { isActive: !user.isActive },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    const statusMessage = updatedUser.isActive
+      ? "User berhasil diaktifkan"
+      : "User berhasil dinonaktifkan";
+
+    res.status(200).json({
+      message: statusMessage,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mengubah status user" });
+  }
+};
+
+// Delete user
+exports.deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!user || user.role === "SUPER_ADMIN") {
+      return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+
+    const userTransactions = await prisma.productTransaction.findMany({
+      where: { userId: parseInt(id) },
+    });
+
+    if (userTransactions.length > 0) {
+      return res.status(400).json({
+        message: "User tidak dapat dihapus karena memiliki riwayat transaksi",
       });
     }
 
-    await prisma.user.delete({ where: { id: user.id } });
+    await prisma.user.delete({
+      where: { id: parseInt(id) },
+    });
 
-    res.json({ message: "User berhasil dihapus." });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({ message: "User berhasil dihapus" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal menghapus user" });
+  }
+};
+
+// Buat user baru (untuk SUPER_ADMIN)
+exports.createUser = async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  if (!name || !email || !password) {
+    return res
+      .status(400)
+      .json({ message: "Nama, email, dan password wajib diisi" });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: "Format email tidak valid" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({
+      message: "Password minimal 6 karakter",
+    });
+  }
+
+  if (role === "SUPER_ADMIN") {
+    return res.status(403).json({
+      message: "Tidak diizinkan membuat akun dengan role SUPER_ADMIN",
+    });
+  }
+
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Email sudah digunakan" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: role || "KARYAWAN",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.status(201).json({
+      message: "User berhasil dibuat",
+      user: newUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal membuat user baru" });
   }
 };

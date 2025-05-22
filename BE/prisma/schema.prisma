@@ -16,6 +16,8 @@ model User {
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  transactions ProductTransaction[]
 }
 
 model Product {
@@ -23,33 +25,54 @@ model Product {
   code      String           @unique
   name      String
   brand     String
-  price     Int
+  price     Int              // Optional, bisa digunakan untuk default display
   category  ProductCategory
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  batches   ProductBatch[]   // Relasi ke batch
+  batches   ProductBatch[]
 }
 
 model ProductBatch {
-  id           Int       @id @default(autoincrement())
-  productId    Int
-  entryDate    DateTime
-  expiredDate  DateTime?    // Bisa null jika ALKES
-  stock        Int
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id            Int           @id @default(autoincrement())
+  productId     Int
+  entryDate     DateTime
+  expiredDate   DateTime?
+  stock         Int
+  basePrice     Int
+  salePrice     Int
+  includeVAT    Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  product      Product      @relation(fields: [productId], references: [id])
+  product       Product       @relation(fields: [productId], references: [id])
+  transactions  ProductTransaction[]
 
   @@index([productId, expiredDate])
+}
+
+model ProductTransaction {
+  id           Int         @id @default(autoincrement())
+  batchId      Int
+  userId       Int
+  quantity     Int
+  type         TransactionType
+  actionDate   DateTime    @default(now())
+
+  batch        ProductBatch @relation(fields: [batchId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  MASUK
+  KELUAR
 }
 
 enum ProductCategory {
   OBAT_KERAS
   OBAT_BEBAS_TERBATAS
-  KONSI
   ALKES
+  KONSI
 }
 
 enum UserRole {

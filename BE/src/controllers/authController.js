@@ -1,46 +1,16 @@
 const bcrypt = require("bcryptjs");
-const prisma = require("../../prisma/client");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 const { generateToken } = require("../utils/jwt");
 
-exports.register = async (req, res) => {
-  if (!req.body) return res.status(400).json({ message: "Body kosong" });
-
-  const { name, email, password, role } = req.body;
-
-  try {
-    // Cek role tidak boleh SUPER_ADMIN
-    if (role === "SUPER_ADMIN") {
-      return res
-        .status(403)
-        .json({
-          message: "Tidak boleh membuat akun SUPER_ADMIN lewat endpoint ini",
-        });
-    }
-
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser)
-      return res.status(400).json({ message: "Email sudah digunakan" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: role || "KARYAWAN",
-      },
-    });
-
-    const token = generateToken(user);
-    res.status(201).json({ user, token });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
+// LOGIN
 exports.login = async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email dan password wajib diisi" });
+  }
+
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user)
@@ -57,9 +27,21 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Password salah" });
     }
 
-    const token = generateToken(user);
-    res.json({ user, token });
+    const { password: _, ...userWithoutPassword } = user;
+
+    const token = generateToken(userWithoutPassword);
+
+    res.json({
+      user: userWithoutPassword,
+      token,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Terjadi kesalahan saat login" });
   }
+};
+
+// LOGOUT
+exports.logout = async (req, res) => {
+  res.status(200).json({ message: "Berhasil logout (hapus token di client)" });
 };

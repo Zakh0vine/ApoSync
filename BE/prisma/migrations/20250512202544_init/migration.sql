@@ -20,7 +20,7 @@ CREATE TABLE `Product` (
     `name` VARCHAR(191) NOT NULL,
     `brand` VARCHAR(191) NOT NULL,
     `price` INTEGER NOT NULL,
-    `category` ENUM('OBAT_KERAS', 'OBAT_BEBAS_TERBATAS', 'KONSI', 'ALKES') NOT NULL,
+    `category` ENUM('OBAT_KERAS', 'OBAT_BEBAS_TERBATAS', 'ALKES', 'KONSI') NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -35,6 +35,9 @@ CREATE TABLE `ProductBatch` (
     `entryDate` DATETIME(3) NOT NULL,
     `expiredDate` DATETIME(3) NULL,
     `stock` INTEGER NOT NULL,
+    `basePrice` INTEGER NOT NULL,
+    `salePrice` INTEGER NOT NULL,
+    `includeVAT` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -42,5 +45,23 @@ CREATE TABLE `ProductBatch` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `ProductTransaction` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `batchId` INTEGER NOT NULL,
+    `userId` INTEGER NOT NULL,
+    `quantity` INTEGER NOT NULL,
+    `type` ENUM('MASUK', 'KELUAR') NOT NULL,
+    `actionDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `ProductBatch` ADD CONSTRAINT `ProductBatch_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ProductTransaction` ADD CONSTRAINT `ProductTransaction_batchId_fkey` FOREIGN KEY (`batchId`) REFERENCES `ProductBatch`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ProductTransaction` ADD CONSTRAINT `ProductTransaction_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
