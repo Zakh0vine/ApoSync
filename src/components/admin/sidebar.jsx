@@ -1,49 +1,88 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MdOutlineInput } from "react-icons/md";
 import { LuAirplay, LuChartColumnBig } from "react-icons/lu";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { BiLogOut } from "react-icons/bi";
 import { RiHistoryLine } from "react-icons/ri";
 
+import { useToken } from "@/utils/context/tokenContext";
 import Logo from "@/assets/logo.png";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, clearTokens } = useToken();
 
-  const menuItems = [
+  // Menu items yang tersedia untuk semua user yang sudah login
+  const commonMenuItems = [
     {
       to: "/dashboard",
       icon: <LuAirplay className="size-6" />,
       label: "Dashboard",
+      roles: ["SUPER_ADMIN", "KARYAWAN"], // tersedia untuk semua role
     },
     {
       to: "/notifikasi",
       icon: <IoMdNotificationsOutline className="size-6" />,
       label: "Notifikasi",
+      roles: ["SUPER_ADMIN", "KARYAWAN"],
     },
-    {
-      to: "/produk",
-      icon: <MdOutlineInput className="size-6" />,
-      label: "Produk",
-    },
+  ];
+
+  // Menu items khusus untuk SUPER_ADMIN
+  const superAdminMenuItems = [
     {
       to: "/riwayat",
       icon: <RiHistoryLine className="size-6" />,
       label: "Riwayat",
+      roles: ["SUPER_ADMIN"],
     },
     {
       to: "/laporan",
       icon: <LuChartColumnBig className="size-6" />,
       label: "Laporan",
+      roles: ["SUPER_ADMIN"],
     },
     {
       to: "/user-manajemen",
       icon: <LuAirplay className="size-6" />,
-      label: "User manajemen",
+      label: "User Manajemen",
+      roles: ["SUPER_ADMIN"],
     },
-    { to: "/masuk", icon: <BiLogOut className="size-6" />, label: "Keluar" },
   ];
+
+  // Menu items khusus untuk KARYAWAN
+  const karyawanMenuItems = [
+    {
+      to: "/produk",
+      icon: <MdOutlineInput className="size-6" />,
+      label: "Produk",
+      roles: ["KARYAWAN"],
+    },
+  ];
+
+  const handleLogout = () => {
+    clearTokens();
+    navigate("/masuk");
+  };
+
+  // Filter menu items berdasarkan role user
+  const getFilteredMenuItems = () => {
+    if (!user || !user.role) return commonMenuItems;
+
+    let menuItems = [...commonMenuItems];
+
+    if (user.role === "SUPER_ADMIN") {
+      menuItems = [...menuItems, ...superAdminMenuItems];
+    } else if (user.role === "KARYAWAN") {
+      menuItems = [...menuItems, ...karyawanMenuItems];
+    }
+
+    return menuItems.filter((item) => item.roles.includes(user.role));
+  };
+
+  const filteredMenuItems = getFilteredMenuItems();
 
   return (
     <div
@@ -65,7 +104,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <img src={Logo} alt="Logo" className="h-20 w-20 mb-8 mx-auto" />
 
         <ul className="space-y-6">
-          {menuItems.map((item, index) => {
+          {filteredMenuItems.map((item, index) => {
             const isActive = location.pathname === item.to;
             return (
               <li key={index}>
@@ -82,6 +121,13 @@ const Sidebar = ({ isOpen, onClose }) => {
               </li>
             );
           })}
+        </ul>
+
+        <ul className="pt-6">
+          <button onClick={handleLogout} className="flex items-center gap-2">
+            <BiLogOut className="size-6" />
+            <span className="text-lg">Keluar</span>
+          </button>
         </ul>
       </div>
     </div>

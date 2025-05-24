@@ -1,8 +1,9 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 
+import ProtectedRoute from "./protectedRoute";
+import RoleProtectedRoute from "./roleProtected";
 import LandingPage from "@/pages/landingPage";
 import Login from "@/pages/auth/login";
-import Staff from "@/pages/superAdmin/user/userModal";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
 import Product from "@/pages/admin/products/index";
@@ -11,7 +12,8 @@ import OutcomingProduct from "@/pages/admin/products/outcomingProduct";
 import History from "@/pages/superAdmin/history";
 import Report from "@/pages/superAdmin/report";
 import UserSetting from "@/pages/superAdmin/userSetting";
-import InactiveAccount from "@/pages/admin/account/inactive";
+import Unauthorized from "@/pages/unauthorized";
+import NotFound from "@/pages/404NotFound";
 
 export default function Router() {
   const router = createBrowserRouter([
@@ -24,52 +26,78 @@ export default function Router() {
       element: <Login />,
     },
     {
-      path: "/staff",
-      element: <Staff />,
+      // Semua yang membutuhkan login
+      element: (
+        <ProtectedRoute>
+          <Outlet />
+        </ProtectedRoute>
+      ),
+      children: [
+        {
+          path: "/dashboard",
+          element: <Dashboard />,
+        },
+        {
+          path: "/notifikasi",
+          element: <Notification />,
+        },
+      ],
     },
     {
-      path: "/dashboard",
-      element: <Dashboard />,
+      // Superadmin only
+      element: (
+        <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+          <Outlet />
+        </RoleProtectedRoute>
+      ),
+      children: [
+        {
+          path: "/laporan",
+          element: <Report />,
+        },
+        {
+          path: "/riwayat",
+          element: <History />,
+        },
+        {
+          path: "/user-manajemen",
+          element: <UserSetting />,
+        },
+      ],
     },
     {
-      path: "/notifikasi",
-      element: <Notification />,
+      // Karyawan only
+      element: (
+        <RoleProtectedRoute allowedRoles={["KARYAWAN"]}>
+          <Outlet />
+        </RoleProtectedRoute>
+      ),
+      children: [
+        {
+          path: "/produk",
+          element: <Product />,
+        },
+        {
+          path: "/produk-masuk",
+          element: <IncomingProduct />,
+        },
+        {
+          path: "/produk-masuk/edit/:id",
+          element: <IncomingProduct />,
+        },
+        {
+          path: "/produk-keluar",
+          element: <OutcomingProduct />,
+        },
+      ],
     },
     {
-      path: "/produk",
-      element: <Product />,
-    },
-    {
-      path: "/produk-masuk",
-      element: <IncomingProduct />,
-    },
-    {
-      path: "/produk-masuk/edit/:id",
-      element: <IncomingProduct />,
-    },
-    {
-      path: "/produk-keluar",
-      element: <OutcomingProduct />,
-    },
-    {
-      path: "/riwayat",
-      element: <History />,
-    },
-    {
-      path: "/laporan",
-      element: <Report />,
-    },
-    {
-      path: "/user-manajemen",
-      element: <UserSetting />,
-    },
-    {
-      path: "/profile-nonaktif",
-      element: <InactiveAccount />,
+      path: "/unauthorized",
+      element: <Unauthorized />,
     },
     {
       path: "*",
-      element: <div>404 page not found</div>,
+      element: <NotFound />,
     },
   ]);
 
