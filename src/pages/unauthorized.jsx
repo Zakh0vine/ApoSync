@@ -5,6 +5,22 @@ import AlertIcon from "@/assets/alert.png";
 
 export default function InactiveAccount() {
   const [rotation, setRotation] = useState(0);
+  const [userProfile, setUserProfile] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUserProfile(parsedUser.name || "Tamu");
+      } catch (error) {
+        console.error("Gagal parse data user dari localStorage:", error);
+        setUserProfile("Tamu");
+      }
+    } else {
+      setUserProfile("Tamu");
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -41,7 +57,7 @@ export default function InactiveAccount() {
         <img src={AlertIcon} alt="alert" className="w-60 h-60 mb-4" />
         <h1 className="text-4xl font-bold text-black mb-2">Mohon Maaf</h1>
         <p className="text-xl text-gray-700">
-          Akun yang sedang Anda gunakan akun Super Admin
+          Akun yang sedang Anda gunakan akun {userProfile}
         </p>
       </div>
     </div>

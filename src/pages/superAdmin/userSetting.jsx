@@ -1,22 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { TiPlusOutline } from "react-icons/ti";
 import { TbEdit } from "react-icons/tb";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
 import { FaRegCheckCircle } from "react-icons/fa";
+import { GoTrash } from "react-icons/go";
+import { debounce } from "lodash";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
 import Pagination from "@/components/pagination";
 import Modal from "@/components/modal";
 import Breadcrumb from "@/components/breadcrumb";
-import { getUser, updateUser } from "@/utils/api/userSetting/api";
+import { getUser, deleteUser, toggleUser } from "@/utils/api/userSetting/api";
 import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 import Status from "@/utils/sweetalert/status";
 import StaffModal from "@/pages/superAdmin/user/userModal";
+import Delete from "@/utils/sweetalert/delete";
 
 export default function UserSetting() {
   const toast = useToast();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState([]);
   const [filteredUser, setFilteredUser] = useState([]);
@@ -28,14 +34,27 @@ export default function UserSetting() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const keywordFromURL = searchParams.get("search") || "";
+    setUserSearch(keywordFromURL);
+    fetchData(keywordFromURL);
+  }, [searchParams]);
 
-  async function fetchData() {
+  async function fetchData(searchTerm = "") {
     try {
+      setIsLoading(true);
       const result = await getUser();
-      setUser(result);
-      setFilteredUser(result);
+      const sortedUsers = result.sort((userA, userB) => {
+        const dateA = new Date(userA.createdAt);
+        const dateB = new Date(userB.createdAt);
+        return dateA - dateB;
+      });
+      setUser(sortedUsers);
+
+      if (searchTerm.trim()) {
+        searchUsers(searchTerm, sortedUsers);
+      } else {
+        setFilteredUser(sortedUsers);
+      }
     } catch (error) {
       toast.addToast({
         variant: "destructive",
@@ -45,9 +64,7 @@ export default function UserSetting() {
             <span className="ml-2">Gagal Mendapatkan Pengguna</span>
           </div>
         ),
-        description: (
-          <span className="ml-7">Data pengguna tidak ditemukan!</span>
-        ),
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -55,7 +72,7 @@ export default function UserSetting() {
   }
 
   const handleToggleStatus = async (user) => {
-    const isAktif = user.status === "Aktif";
+    const isAktif = user.isActive;
 
     const result = await Status({
       title: isAktif ? "Profil di Non-aktifkan" : "Aktifkan User?",
@@ -64,23 +81,25 @@ export default function UserSetting() {
           ? "Data profil yang di non-aktif dapat diaktifkan kembali!"
           : "Data profil yang diaktifkan dapat di non-aktifkan kembali!"
       }`,
-      status: user.status,
+      status: isAktif ? "Aktif" : "Non-aktif",
     });
 
     if (result.isConfirmed) {
       try {
         setIsUpdatingStatus(user.id);
-        const updatedStatus = isAktif ? "Non-aktif" : "Aktif";
-        await updateUser({ id: user.id, status: updatedStatus });
+
+        const response = await toggleUser(user.id);
+        const updatedUser = response.user;
+
         fetchData();
 
-        const titleText = isAktif
-          ? "Berhasil menon-aktifkan profil staff"
-          : "Berhasil mengaktifkan profil staff";
+        const titleText = updatedUser.isActive
+          ? "Berhasil mengaktifkan profil staff"
+          : "Berhasil menon-aktifkan profil staff";
 
-        const descriptionText = isAktif
-          ? "Data profil staff telah di non-aktifkan!"
-          : "Data profil staff telah diaktifkan!";
+        const descriptionText = updatedUser.isActive
+          ? "Data profil staff telah diaktifkan!"
+          : "Data profil staff telah di non-aktifkan!";
 
         toast.addToast({
           title: (
@@ -112,24 +131,81 @@ export default function UserSetting() {
     }
   };
 
+  async function onClickDelete(id) {
+    try {
+      const result = await Delete({
+        title: "Hapus Pengguna!",
+        text: "Pengguna yang terhapus tidak dapat dipulihkan!",
+      });
+
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        await deleteUser(id);
+        toast.addToast({
+          variant: "deleted",
+          title: (
+            <div className="flex items-center">
+              <FaRegCheckCircle className="size-5" />
+              <span className="ml-2">Berhasil Menghapus Pengguna</span>
+            </div>
+          ),
+          description: (
+            <span className="ml-7">
+              Pengguna yang dihapus tidak dapat dipulihkan!
+            </span>
+          ),
+        });
+        fetchData();
+      }
+    } catch (error) {
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="size-5" />
+            <span className="ml-2">Gagal Menghapus Pengguna!</span>
+          </div>
+        ),
+        description: <span className="ml-7">Data pengguna gagal dihapus!</span>,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   const handleUserSearch = (e) => {
     const term = e.target.value;
     setUserSearch(term);
 
-    let filtered = user;
-
-    if (term.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(term.toLowerCase()) ||
-          product.role.toLowerCase().includes(term.toLowerCase()) ||
-          product.kontak.toLowerCase().includes(term.toLowerCase())
-      );
+    if (term.trim() === "") {
+      setSearchParams({});
+      fetchData();
+    } else {
+      setSearchParams({ search: term });
+      debouncedSearch(term);
     }
+  };
 
-    setFilteredUser(filtered);
+  const searchUsers = (searchTerm, userData = user) => {
+    const keyword = searchTerm.toLowerCase();
+
+    const result = userData.filter((userItem) =>
+      [userItem.name, userItem.role, userItem.email].some((field) =>
+        (field || "").toLowerCase().includes(keyword)
+      )
+    );
+
+    setFilteredUser(result);
     setCurrentPage(1);
   };
+
+  const debouncedSearch = useMemo(() => debounce(searchUsers, 300), [user]);
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -202,23 +278,23 @@ export default function UserSetting() {
                 </thead>
                 <tbody>
                   {currentItem.length > 0 ? (
-                    currentItem.map((item) => (
+                    currentItem.map((item, index) => (
                       <tr
                         key={item.id}
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
-                        <td className="px-4 py-2">{item.id}</td>
                         <td className="px-4 py-2">
-                          {item.nama_depan} {item.nama_belakang}
+                          {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
+                        <td className="px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">{item.role}</td>
-                        <td className="px-4 py-2 text-center">{item.kontak}</td>
+                        <td className="px-4 py-2 text-center">{item.email}</td>
                         <td className="px-4 py-2">
                           <div className="flex justify-center">
                             <button
                               onClick={() => handleToggleStatus(item)}
                               className={`px-3 py-1 text-sm rounded-md font-semibold flex items-center justify-center w-[100px] h-[36px] text-white ${
-                                item.status === "Aktif"
+                                item.isActive === true
                                   ? "bg-[#23B000]"
                                   : "bg-[#F02626]"
                               }`}
@@ -226,8 +302,10 @@ export default function UserSetting() {
                             >
                               {isUpdatingStatus === item.id ? (
                                 <Loader fullScreen={false} size="sm" />
+                              ) : item.isActive ? (
+                                "Aktif"
                               ) : (
-                                item.status
+                                "Non-aktif"
                               )}
                             </button>
                           </div>
@@ -236,6 +314,10 @@ export default function UserSetting() {
                           <div className="flex justify-center gap-2">
                             <TbEdit
                               onClick={() => handleEditUser(item)}
+                              className="size-5 cursor-pointer"
+                            />
+                            <GoTrash
+                              onClick={() => onClickDelete(item.id)}
                               className="size-5 cursor-pointer"
                             />
                           </div>

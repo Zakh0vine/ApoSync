@@ -11,12 +11,13 @@ import { createUser, updateUser } from "@/utils/api/userSetting/api";
 import { Input } from "@/components/forms/input";
 import { Select } from "@/components/forms/select";
 import { UserSchema } from "@/utils/api/userSetting/schema";
+import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
 
 export default function UserModal({ userData, onClose, onSuccess }) {
   const toast = useToast();
-
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     reset,
@@ -26,31 +27,29 @@ export default function UserModal({ userData, onClose, onSuccess }) {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(UserSchema),
-    defaultValues: {
-      harga: 0,
-      stok: 0,
-    },
   });
 
   useEffect(() => {
     if (userData) {
       setSelectedId(userData.id);
-      setValue("nama_depan", userData.nama_depan);
-      setValue("nama_belakang", userData.nama_belakang);
-      setValue("kontak", userData.kontak);
-      setValue("password", userData.password);
-      setValue("konfirmasi_password", userData.konfirmasi_password);
-      setIsLoading(false);
+      setValue("name", userData.name);
+      setValue("email", userData.email);
+      setValue("role", userData.role);
     }
   }, [userData, setValue]);
 
   async function onSubmit(data) {
     try {
-      setIsLoading(true);
+      console.log("Form data before submit:", data);
+
+      const payload = {
+        ...data,
+        id: selectedId,
+      };
 
       if (userData) {
         // Edit mode
-        await updateUser({ ...data, id: selectedId });
+        await updateUser(payload);
 
         toast.addToast({
           variant: "edited",
@@ -68,7 +67,7 @@ export default function UserModal({ userData, onClose, onSuccess }) {
         });
       } else {
         // Create mode
-        await createUser(data);
+        await createUser(payload);
 
         toast.addToast({
           title: (
@@ -94,16 +93,18 @@ export default function UserModal({ userData, onClose, onSuccess }) {
             <span className="ml-2">Gagal Menyimpan User</span>
           </div>
         ),
-        description: (
-          <span className="ml-7">
-            Terjadi kesalahan saat menyimpan data user!
-          </span>
-        ),
+        description: <span className="ml-7">{error.message}</span>,
       });
-    } finally {
-      setIsLoading(false);
     }
   }
+
+  const handleShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  const handleShowConfirmPassword = () => {
+    setShowConfirmPassword((prev) => !prev);
+  };
 
   return (
     <div className="bg-white">
@@ -124,21 +125,11 @@ export default function UserModal({ userData, onClose, onSuccess }) {
             <div className="flex flex-col md:flex-row justify-between gap-4">
               <div className="flex flex-col w-full">
                 <Input
-                  id="nama_depan"
-                  name="nama_depan"
-                  label="Nama Depan"
+                  id="name"
+                  name="name"
+                  label="Nama"
                   type="text"
-                  error={errors.nama_depan?.message}
-                  register={register}
-                />
-              </div>
-              <div className="flex flex-col w-full">
-                <Input
-                  id="nama_belakang"
-                  name="nama_belakang"
-                  label="Nama Belakang"
-                  type="text"
-                  error={errors.nama_belakang?.message}
+                  error={errors.name?.message}
                   register={register}
                 />
               </div>
@@ -146,11 +137,11 @@ export default function UserModal({ userData, onClose, onSuccess }) {
 
             <div className="flex flex-col relative">
               <Input
-                id="kontak"
-                name="kontak"
+                id="email"
+                name="email"
                 label="Kontak"
                 type="text"
-                error={errors.kontak?.message}
+                error={errors.email?.message}
                 register={register}
               />
             </div>
@@ -161,21 +152,9 @@ export default function UserModal({ userData, onClose, onSuccess }) {
                 aria-label="role"
                 label="Role"
                 name="role"
-                options={["Admin Staff", "Staff PKL"]}
+                options={["KARYAWAN"]}
                 register={register}
                 error={errors.role?.message}
-              />
-            </div>
-
-            <div className="flex flex-col relative">
-              <Select
-                id="status"
-                aria-label="status"
-                label="Status"
-                name="status"
-                options={["Aktif", "Non-aktif"]}
-                register={register}
-                error={errors.status?.message}
               />
             </div>
 
@@ -184,10 +163,21 @@ export default function UserModal({ userData, onClose, onSuccess }) {
                 id="password"
                 name="password"
                 label="Kata Sandi"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 error={errors.password?.message}
                 register={register}
               />
+              {showPassword ? (
+                <IoEyeOffOutline
+                  onClick={handleShowPassword}
+                  className="w-5 h-5 absolute right-4 top-[42px] cursor-pointer text-gray-600"
+                />
+              ) : (
+                <IoEyeOutline
+                  onClick={handleShowPassword}
+                  className="w-5 h-5 absolute right-4 top-[42px] cursor-pointer text-gray-600"
+                />
+              )}
             </div>
 
             <div className="flex flex-col relative">
@@ -195,10 +185,21 @@ export default function UserModal({ userData, onClose, onSuccess }) {
                 id="konfirmasi_password"
                 name="konfirmasi_password"
                 label="Ulangi Kata Sandi"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 error={errors.konfirmasi_password?.message}
                 register={register}
               />
+              {showConfirmPassword ? (
+                <IoEyeOffOutline
+                  onClick={handleShowConfirmPassword}
+                  className="w-5 h-5 absolute right-4 top-[42px] cursor-pointer text-gray-600"
+                />
+              ) : (
+                <IoEyeOutline
+                  onClick={handleShowConfirmPassword}
+                  className="w-5 h-5 absolute right-4 top-[42px] cursor-pointer text-gray-600"
+                />
+              )}
             </div>
 
             {/* Buttons */}

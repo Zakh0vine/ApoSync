@@ -2,13 +2,20 @@ import axiosWithConfig from "../../axiosWithConfig";
 
 export const getUser = async () => {
   try {
-    const response = await axiosWithConfig.get(
-      "https://68260c30397e48c91314c76a.mockapi.io/api/user_setting"
-    );
+    const response = await axiosWithConfig.get("/api/users");
 
     return response.data;
   } catch (error) {
-    throw Error("Gagal mendapatkan user manajemen");
+    throw Error(error.response.data.message);
+  }
+};
+
+export const toggleUser = async (id) => {
+  try {
+    const response = await axiosWithConfig.patch(`/api/users/${id}/toggle`);
+    return response.data;
+  } catch (error) {
+    throw Error(error.response.data.message);
   }
 };
 
@@ -17,14 +24,11 @@ export const createUser = async (data) => {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.post(
-      "https://68260c30397e48c91314c76a.mockapi.io/api/user_setting",
-      newData
-    );
+    const response = await axiosWithConfig.post("/api/users", newData);
 
     return response.data;
   } catch (error) {
-    throw Error("Gagal membuat user baru");
+    throw Error(error.response.data.message);
   }
 };
 
@@ -34,10 +38,17 @@ export const updateUser = async (data) => {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.put(
-      `https://68260c30397e48c91314c76a.mockapi.io/api/user_setting/${id}`,
-      newData
-    );
+    const response = await axiosWithConfig.put(`/api/users/${id}`, newData);
+
+    return response.data;
+  } catch (error) {
+    throw Error(error.response.data.message);
+  }
+};
+
+export const deleteUser = async (id) => {
+  try {
+    const response = await axiosWithConfig.delete("/api/users/" + id);
 
     return response.data;
   } catch (error) {

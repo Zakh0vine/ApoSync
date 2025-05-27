@@ -1,16 +1,35 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import Working from "@/assets/working.png";
 import Pharmacy from "@/assets/pharmacy.png";
 
 export default function Dashboard() {
+  const [userProfile, setUserProfile] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUserProfile(parsedUser.name || "Tamu");
+      } catch (error) {
+        console.error("Gagal parse data user dari localStorage:", error);
+        setUserProfile("Tamu");
+      }
+    } else {
+      setUserProfile("Tamu");
+    }
+  }, []);
+
   return (
     <Layout>
       <div className="md:pt-10 mt-16 p-4 sm:p-10 sm:mt-16 bg-white min-h-screen">
         {/* Header - Improved responsive layout */}
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-xl sm:text-xl font-semibold">Hello, Fasha</h1>
+            <h1 className="text-xl sm:text-xl font-semibold">
+              Hello, {userProfile}
+            </h1>
             <p className="text-gray-400 text-base sm:text-base mt-1">
               Here are your daily updates.
             </p>
@@ -80,19 +99,28 @@ export default function Dashboard() {
 
         {/* Pendapatan Harian */}
         <div className="bg-white shadow-md rounded-md p-7 sm:p-8 border">
-          <h3 className="text-xl sm:text-xl font-semibold mb-3 sm:mb-4">
+          <h3 className="text-xl font-semibold mb-3 sm:mb-4">
             Pendapatan Harian
           </h3>
           <div className="w-full h-0.5 bg-[#6C757D] mb-4"></div>
 
-          {/* Bagi 50%-50% */}
-          <div className="flex pb-2 text-base sm:text-base font-medium">
-            <div className="w-1/2 text-center">Obat Masuk</div>
-            <div className="w-1/2 text-center">Obat Keluar</div>
-          </div>
+          {/* Kartu Obat Masuk dan Obat Keluar */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+            {/* Obat Masuk */}
+            <div className="bg-green-100 text-green-800 rounded-md shadow-sm py-4 px-4 flex flex-col items-center">
+              <p className="text-base sm:text-lg font-medium mb-1">
+                Obat Masuk
+              </p>
+              <p className="text-xl sm:text-2xl font-semibold">Rp 1.250.000</p>
+            </div>
 
-          <div className="bg-gray-100 h-24 sm:h-32 rounded-md mt-3 sm:mt-4 flex items-center justify-center text-gray-400 text-xs sm:text-sm">
-            Grafik Pendapatan Harian
+            {/* Obat Keluar */}
+            <div className="bg-red-100 text-red-800 rounded-md shadow-sm py-4 px-4 flex flex-col items-center">
+              <p className="text-base sm:text-lg font-medium mb-1">
+                Obat Keluar
+              </p>
+              <p className="text-xl sm:text-2xl font-semibold">Rp 980.000</p>
+            </div>
           </div>
         </div>
       </div>
