@@ -190,6 +190,18 @@ export default function OutcomingProduct() {
               />
             </div>
 
+            <div className="flex flex-col">
+              <Select
+                id="status"
+                aria-label="status"
+                label="Status"
+                name="status"
+                options={["Terjual", "Rusak", "Kadaluwarsa", "Tidak Sesuai"]}
+                register={register}
+                error={errors.status?.message}
+              />
+            </div>
+
             <div className="md:col-span-2 flex justify-end gap-4 mt-6">
               <Button
                 onClick={() => navigate("/produk")}

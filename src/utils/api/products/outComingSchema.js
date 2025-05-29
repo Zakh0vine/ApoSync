@@ -11,4 +11,5 @@ export const outComingSchema = z.object({
     .min(1, { message: "Tanggal kadaluwarsa harus diisi" }),
   kode: z.string().min(1, { message: "Kode produk harus diisi" }),
   stok: z.number().min(1, { message: "Stok harus diisi" }),
+  status: z.string().min(1, { message: "Status harus diisi" }),
 });

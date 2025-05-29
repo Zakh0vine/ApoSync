@@ -1,4 +1,4 @@
-import axiosWithConfig from "../../axiosWithConfig";
+import axiosWithConfig from "../axiosWithConfig";
 
 export const getUser = async () => {
   try {

@@ -150,9 +150,9 @@ export default function History() {
                     <th className="px-4 py-2">Nama Produk</th>
                     <th className="px-4 py-2">Merk Produk</th>
                     <th className="px-4 py-2">Stok Barang</th>
-                    <th className="px-4 py-2">Kode Produk</th>
                     <th className="px-4 py-2">Harga</th>
                     <th className="px-4 py-2">Tanggal</th>
+                    <th className="px-4 py-2">Status</th>
                     <th className="px-4 py-2 text-center">Masuk/Keluar</th>
                     <th className="px-4 py-2">Nama PJ</th>
                   </tr>
@@ -168,9 +168,9 @@ export default function History() {
                         <td className="px-4 py-2">{item.nama}</td>
                         <td className="px-4 py-2">{item.merk}</td>
                         <td className="px-4 py-2">{item.stok}</td>
-                        <td className="px-4 py-2">{item.kode}</td>
                         <td className="px-4 py-2">{item.harga}</td>
                         <td className="px-4 py-2">{item.tanggal}</td>
+                        <td className="px-4 py-2">{item.status}</td>
                         <td className="px-4 py-2 text-center">
                           <span
                             className={`px-3 py-1 text-sm rounded-md font-semibold text-white ${
