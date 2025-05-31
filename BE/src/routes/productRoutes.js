@@ -1,42 +1,23 @@
-// const express = require("express");
-// const router = express.Router();
-// const productController = require("../controllers/productController");
+import express from "express";
+import {
+  getAllProduk,
+  getProdukById,
+  createProduk,
+  updateProduk,
+  deleteProduk,
+} from "../controllers/productController.js";
 
-// // Route untuk menambah produk baru
-// router.post("/products", productController.createProduct);
+import { authAny, authKaryawan } from "../middlewares/roleMiddleware.js";
 
-// // Route untuk mendapatkan semua produk
-// router.get("/products", productController.getAllProducts);
-
-// module.exports = router;
-
-const express = require("express");
 const router = express.Router();
-const productController = require("../controllers/productController");
 
-// Import middleware role terpusat
-const { authKaryawan, authAny } = require("../middlewares/roleMiddleware");
+// Semua bisa akses lihat produk (jika kamu ingin publik bisa lihat)
+router.get("/", authAny, getAllProduk);
+router.get("/:id", authAny, getProdukById);
 
-// Route untuk mendapatkan semua produk
-router.get("/product", authAny, productController.getAllProducts);
+// Produk masuk, update, delete → hanya KARYAWAN
+router.post("/", authKaryawan, createProduk);
+router.put("/:id", authKaryawan, updateProduk);
+router.delete("/:id", authKaryawan, deleteProduk);
 
-// Route untuk mendapatkan satu produk dengan detail batch-nya
-router.get("/product/:id", authAny, productController.getProductById);
-
-// Route untuk mendapatkan batches untuk popup (ketika nama produk diklik)
-router.get(
-  "/product/:productId/batches",
-  authAny,
-  productController.getProductBatches
-);
-
-// Route untuk menambah produk baru
-router.post("/product", authKaryawan, productController.createProduct);
-
-// Route untuk update produk
-router.put("/product/:id", authKaryawan, productController.updateProduct);
-
-// Route untuk delete produk
-router.delete("/product/:id", authKaryawan, productController.deleteProduct);
-
-module.exports = router;
+export default router;

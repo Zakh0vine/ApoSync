@@ -1,196 +1,194 @@
-// const { PrismaClient } = require("@prisma/client");
-// const prisma = new PrismaClient();
+//productController.js
 
-// // Menambahkan produk baru
-// exports.createProduct = async (req, res) => {
-//   const { code, name, brand, price, category } = req.body;
-
-//   try {
-//     const product = await prisma.product.create({
-//       data: { code, name, brand, price, category },
-//     });
-//     res.status(201).json(product);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Failed to create product" });
-//   }
-// };
-
-// // Mengambil semua produk
-// exports.getAllProducts = async (req, res) => {
-//   try {
-//     const products = await prisma.product.findMany({
-//       include: { batches: true },
-//     });
-//     res.status(200).json(products);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Failed to fetch products" });
-//   }
-// };
-
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+const validKategori = ["OBAT_BEBAS", "OBAT_KERAS", "KONSI", "ALKES"];
 
-// Menambahkan produk baru
-exports.createProduct = async (req, res) => {
-  const { code, name, brand, price, category } = req.body;
+function isValidKategori(kategori) {
+  return validKategori.includes(kategori);
+}
 
-  try {
-    const product = await prisma.product.create({
-      data: { code, name, brand, price, category },
-    });
-    res.status(201).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create product" });
+// Tambahkan produk baru
+export const createProduk = async (req, res) => {
+  const { nama, merk, kodeProduk, kategori, hargaModal, sudahTermasukPPN } =
+    req.body;
+
+  // Validasi field wajib
+  if (!nama || !merk || !kodeProduk || !kategori || hargaModal == null) {
+    return res.status(400).json({ message: "Semua field wajib diisi." });
   }
-};
 
-// Mengambil semua produk dengan total stok per produk
-exports.getAllProducts = async (req, res) => {
-  try {
-    // Ambil semua produk
-    const products = await prisma.product.findMany({
-      include: {
-        batches: true,
-      },
+  // Validasi kategori
+  if (!isValidKategori(kategori)) {
+    return res.status(400).json({
+      message: `Kategori tidak valid. Pilihan: ${validKategori.join(", ")}`,
     });
-
-    // Hitung total stok per produk
-    const productsWithTotalStock = products.map((product) => {
-      const totalStock = product.batches.reduce(
-        (sum, batch) => sum + batch.stock,
-        0
-      );
-      const avgPrice =
-        product.batches.length > 0
-          ? Math.round(
-              product.batches.reduce((sum, batch) => sum + batch.salePrice, 0) /
-                product.batches.length
-            )
-          : product.price;
-
-      return {
-        ...product,
-        totalStock,
-        avgPrice,
-      };
-    });
-
-    res.status(200).json(productsWithTotalStock);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch products" });
   }
-};
-
-// Mengambil satu produk dengan detail batchnya
-exports.getProductById = async (req, res) => {
-  const { id } = req.params;
 
   try {
-    const product = await prisma.product.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        batches: {
-          orderBy: {
-            expiredDate: "asc", // FEFO: paling dekat kedaluwarsa ada di atas
-          },
-        },
-      },
-    });
+    let hargaModalPPN = parseFloat(hargaModal);
 
-    if (!product) {
-      return res.status(404).json({ error: "Product not found" });
+    // Hitung PPN jika belum termasuk
+    if (!sudahTermasukPPN) {
+      hargaModalPPN *= 1.11;
     }
+    // Bulatkan hargaModalPPN ke integer terdekat
+    hargaModalPPN = Math.round(hargaModalPPN);
+    // Hitung harga jual (markup 25%) dan pembulatan ribuan
+    let hargaJual = hargaModalPPN * 1.25;
+    hargaJual = Math.round(hargaJual / 500) * 500;
 
-    res.status(200).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch product" });
-  }
-};
-
-// Mengambil batches untuk popup - digunakan ketika user mengklik nama produk
-exports.getProductBatches = async (req, res) => {
-  const { productId } = req.params;
-
-  try {
-    const batches = await prisma.productBatch.findMany({
-      where: {
-        productId: parseInt(productId),
-      },
-      orderBy: {
-        expiredDate: "asc", // FEFO: paling dekat kedaluwarsa ada di atas
-      },
-      include: {
-        product: true,
+    const produkBaru = await prisma.produk.create({
+      data: {
+        nama,
+        merk,
+        kodeProduk,
+        kategori,
+        hargaModal: hargaModalPPN,
+        hargaJual,
+        stok: 0, // Default 0 saat awal
       },
     });
 
-    if (batches.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No batches found for this product" });
-    }
-
-    res.status(200).json(batches);
+    return res.status(201).json({
+      message: "Produk berhasil ditambahkan",
+      data: produkBaru,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch product batches" });
+    console.error("Create produk error:", error);
+    return res.status(500).json({ message: "Gagal menambahkan produk." });
   }
 };
 
 // Update produk
-exports.updateProduct = async (req, res) => {
+export const updateProduk = async (req, res) => {
   const { id } = req.params;
-  const { code, name, brand, price, category } = req.body;
+  const { nama, merk, kodeProduk, kategori, hargaModal, hargaJual } = req.body;
+
+  if (kategori && !isValidKategori(kategori)) {
+    return res.status(400).json({
+      message: `Kategori tidak valid. Pilihan yang diizinkan: ${validKategori.join(
+        ", "
+      )}`,
+    });
+  }
 
   try {
-    const product = await prisma.product.update({
+    const produkLama = await prisma.produk.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!produkLama) {
+      return res.status(404).json({ message: "Produk tidak ditemukan." });
+    }
+
+    // Jika hargaModal di‐update, recalc hargaJual sesuai markup 25% + pembulatan ke 500
+    let baruHargaModal = produkLama.hargaModal;
+    let baruHargaJual = produkLama.hargaJual;
+
+    if (hargaModal != null) {
+      baruHargaModal = parseFloat(hargaModal);
+      // hitung markup 25%
+      const markup = baruHargaModal * 1.25;
+      // pembulatan ke kelipatan 500
+      baruHargaJual = Math.round(markup / 500) * 500;
+    } else if (hargaJual != null) {
+      // Jika user memasukkan hargaJual secara eksplisit, gunakan saja nilai itu
+      baruHargaJual = parseFloat(hargaJual);
+    }
+
+    const updatedProduk = await prisma.produk.update({
       where: { id: parseInt(id) },
       data: {
-        code,
-        name,
-        brand,
-        price,
-        category,
+        nama: nama ?? produkLama.nama,
+        merk: merk ?? produkLama.merk,
+        kodeProduk: kodeProduk ?? produkLama.kodeProduk,
+        kategori: kategori ?? produkLama.kategori,
+        hargaModal: hargaModal != null ? baruHargaModal : produkLama.hargaModal,
+        hargaJual: baruHargaJual,
       },
     });
 
-    res.status(200).json(product);
+    return res.status(200).json({
+      message: "Produk berhasil diperbarui (master)",
+      data: updatedProduk,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to update product" });
+    console.error("Update produk error:", error);
+    return res.status(500).json({
+      message: "Terjadi kesalahan saat memperbarui produk.",
+    });
   }
 };
 
-// Hapus produk (soft delete atau hard delete sesuai kebutuhan)
-exports.deleteProduct = async (req, res) => {
+// Ambil semua produk (termasuk stok total dari batch)
+export const getAllProduk = async (req, res) => {
+  try {
+    const semuaProduk = await prisma.produk.findMany({
+      include: {
+        stokBatch: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return res.status(200).json({
+      message: "Berhasil mengambil semua produk",
+      data: semuaProduk,
+    });
+  } catch (error) {
+    console.error("Get all produk error:", error);
+    return res.status(500).json({ message: "Gagal mengambil data produk." });
+  }
+};
+
+// Ambil produk berdasarkan ID
+export const getProdukById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Cek apakah product memiliki batches
-    const batches = await prisma.productBatch.findMany({
-      where: { productId: parseInt(id) },
+    const produk = await prisma.produk.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        stokBatch: true,
+      },
     });
 
-    if (batches.length > 0) {
-      return res.status(400).json({
-        error:
-          "Cannot delete product with existing batches. Please delete all batches first.",
-      });
+    if (!produk) {
+      return res.status(404).json({ message: "Produk tidak ditemukan." });
     }
 
-    // Hapus produk jika tidak ada batches
-    await prisma.product.delete({
+    return res.status(200).json({
+      message: "Produk ditemukan",
+      data: produk,
+    });
+  } catch (error) {
+    console.error("Get produk by ID error:", error);
+    return res.status(500).json({ message: "Gagal mengambil data produk." });
+  }
+};
+
+// Hapus produk
+export const deleteProduk = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const produk = await prisma.produk.findUnique({
       where: { id: parseInt(id) },
     });
 
-    res.status(200).json({ message: "Product deleted successfully" });
+    if (!produk) {
+      return res.status(404).json({ message: "Produk tidak ditemukan." });
+    }
+
+    await prisma.produk.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return res.status(200).json({ message: "Produk berhasil dihapus." });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to delete product" });
+    console.error("Delete produk error:", error);
+    return res.status(500).json({ message: "Gagal menghapus produk." });
   }
 };

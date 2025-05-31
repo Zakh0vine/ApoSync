@@ -1,16 +1,10 @@
-const { protect } = require("./authMiddleware");
-const {
+import { protect } from "./authMiddleware.js";
+import {
   isKaryawan,
   isKaryawanOrSuperAdmin,
   isSuperAdmin,
-} = require("./authMiddleware");
+} from "./authMiddleware.js";
 
-const authKaryawan = [protect, isKaryawan];
-const authAny = [protect, isKaryawanOrSuperAdmin];
-const authSuperAdmin = [protect, isSuperAdmin];
-
-module.exports = {
-  authKaryawan,
-  authAny,
-  authSuperAdmin,
-};
+export const authKaryawan = [protect, isKaryawan];
+export const authAny = [protect, isKaryawanOrSuperAdmin];
+export const authSuperAdmin = [protect, isSuperAdmin];

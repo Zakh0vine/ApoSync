@@ -1,10 +1,10 @@
-const bcrypt = require("bcryptjs");
-const { PrismaClient } = require("@prisma/client");
+import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
+import { generateToken } from "../utils/jwt.js";
 const prisma = new PrismaClient();
-const { generateToken } = require("../utils/jwt");
 
 // LOGIN
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -42,6 +42,6 @@ exports.login = async (req, res) => {
 };
 
 // LOGOUT
-exports.logout = async (req, res) => {
+export const logout = async (req, res) => {
   res.status(200).json({ message: "Berhasil logout (hapus token di client)" });
 };

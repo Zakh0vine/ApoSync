@@ -1,6 +1,13 @@
-const express = require("express");
-const userController = require("../controllers/userController");
-const { protect, restrictTo } = require("../middlewares/authMiddleware");
+import express from "express";
+import {
+  createUser,
+  deleteUser,
+  toggleActive,
+  updateUser,
+  getAllUsers,
+  getUserById,
+} from "../controllers/userController.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -11,21 +18,21 @@ router.use(protect);
 router.use(restrictTo("SUPER_ADMIN"));
 
 // Dapatkan semua user (kecuali SUPER_ADMIN)
-router.get("/", userController.getAllUsers);
+router.get("/", getAllUsers);
 
 // Dapatkan user by ID (kecuali SUPER_ADMIN)
-router.get("/:id", userController.getUserById);
+router.get("/:id", getUserById);
 
 // Buat user baru (tidak bisa SUPER_ADMIN)
-router.post("/", userController.createUser);
+router.post("/", createUser);
 
 // Update user (tidak bisa ubah role)
-router.put("/:id", userController.updateUser);
+router.put("/:id", updateUser);
 
 // Aktif/nonaktifkan akun
-router.patch("/:id/toggle", userController.toggleActive);
+router.patch("/:id/toggle", toggleActive);
 
 // Hapus user (jika tidak punya transaksi)
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", deleteUser);
 
-module.exports = router;
+export default router;

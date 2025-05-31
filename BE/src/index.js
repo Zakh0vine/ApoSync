@@ -1,13 +1,17 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
 // Import routes
-const authRoute = require("./routes/authRoute");
-const productRoutes = require("./routes/productRoutes");
-const productBatchRoutes = require("./routes/productBatchRoutes");
-const productTransactionRoutes = require("./routes/productTransactionRoutes");
-const userRoutes = require("./routes/userRoutes");
+import authRoutes from "./routes/authRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import productMasukRoutes from "./routes/productMasukRoutes.js";
+import productKeluarRoutes from "./routes/productKeluarRoutes.js";
+import laporanRoutes from "./routes/laporanRoutes.js";
+import riwayatRoutes from "./routes/riwayatRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -28,13 +32,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("/auth", authRoute);
-app.use("/api/products", productRoutes);
-app.use("/api/batches", productBatchRoutes);
-app.use("/api/transactions", productTransactionRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/produk-masuk", productMasukRoutes);
+app.use("/api/v1/produk-keluar", productKeluarRoutes);
+app.use("/api/v1/laporan", laporanRoutes);
+app.use("/api/v1/riwayat", riwayatRoutes);
+app.use("/api/v1/notifikasi", notificationRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
-// Health check
+// Health checks
 app.get("/", (req, res) => {
   res.send("🚀 Apotek Backend API is running.");
 });

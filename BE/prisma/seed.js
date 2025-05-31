@@ -1,20 +1,21 @@
 // prisma/seed.js
-const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcryptjs");
-require("dotenv").config();
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const prisma = new PrismaClient();
 const { SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD } = process.env;
 
 async function main() {
-  // Validasi jika variabel lingkungan belum diatur
   if (!SUPER_ADMIN_EMAIL || !SUPER_ADMIN_PASSWORD) {
     console.error(
       "SUPER_ADMIN_EMAIL dan SUPER_ADMIN_PASSWORD harus diatur di file .env"
     );
-    process.exit(1); // Keluar dari proses jika variabel tidak ditemukan
+    process.exit(1);
   }
 
-  // Pastikan password memenuhi kriteria (misalnya minimal 8 karakter)
   if (SUPER_ADMIN_PASSWORD.length < 8) {
     console.error(
       "Password untuk Super Admin harus memiliki panjang minimal 8 karakter."
@@ -25,7 +26,6 @@ async function main() {
   const hashedPassword = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
 
   try {
-    // Cek apakah Super Admin sudah ada
     const superAdmin = await prisma.user.findUnique({
       where: { email: SUPER_ADMIN_EMAIL },
     });
@@ -35,7 +35,6 @@ async function main() {
       return;
     }
 
-    // Jika belum ada, buat Super Admin baru
     const newSuperAdmin = await prisma.user.create({
       data: {
         name: "ADMIN GALAK",
@@ -49,7 +48,6 @@ async function main() {
   } catch (error) {
     console.error("Terjadi kesalahan saat membuat Super Admin:", error);
   } finally {
-    // Menutup koneksi Prisma setelah operasi selesai
     await prisma.$disconnect();
   }
 }

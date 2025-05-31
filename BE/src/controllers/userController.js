@@ -1,12 +1,12 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
-const bcrypt = require("bcryptjs");
 
 // Util untuk validasi email
 const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
 // Mendapatkan semua users (tanpa SUPER_ADMIN)
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       where: { role: { not: "SUPER_ADMIN" } }, // ❗ filter di sini
@@ -32,7 +32,7 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // Mendapatkan user by ID (tanpa SUPER_ADMIN)
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -61,7 +61,7 @@ exports.getUserById = async (req, res) => {
 };
 
 // Update user (tidak bisa ubah role, validasi email)
-exports.updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   const { id } = req.params;
   const { name, email, password } = req.body;
 
@@ -120,7 +120,7 @@ exports.updateUser = async (req, res) => {
 };
 
 // Toggle aktif/nonaktif
-exports.toggleActive = async (req, res) => {
+export const toggleActive = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -159,7 +159,7 @@ exports.toggleActive = async (req, res) => {
 };
 
 // Delete user
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -193,7 +193,7 @@ exports.deleteUser = async (req, res) => {
 };
 
 // Buat user baru (untuk SUPER_ADMIN)
-exports.createUser = async (req, res) => {
+export const createUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
   if (!name || !email || !password) {
