@@ -123,7 +123,7 @@ export default function Produk() {
             <span className="ml-2">Gagal Menghapus Data!</span>
           </div>
         ),
-        description: <span className="ml-7">Data produk gagal dihapus!</span>,
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -184,22 +184,22 @@ export default function Produk() {
     const term = e.target.value;
     setSearchTerm(term);
 
-    if (!selectedProduct || !selectedProduct.detail) return;
+    if (!selectedProduct || !selectedProduct.batches) return;
 
     if (term.trim() === "") {
-      setFilteredDetail(selectedProduct.detail);
+      setFilteredDetail(selectedProduct.batches);
     } else {
-      const filtered = selectedProduct.detail.filter((item) =>
-        item.kadaluwarsa.toLowerCase().includes(term.toLowerCase())
+      const filtered = selectedProduct.batches.filter((item) =>
+        item.expiredDate.toLowerCase().includes(term.toLowerCase())
       );
       setFilteredDetail(filtered);
     }
   };
 
   const openProductDetail = (product) => {
-    if (product && product.detail) {
+    if (product && product.batches) {
       setSelectedProduct(product);
-      setFilteredDetail(product.detail);
+      setFilteredDetail(product.batches);
     }
   };
 
@@ -285,13 +285,18 @@ export default function Produk() {
                           className="px-4 py-2 cursor-pointer hover:underline"
                           onClick={() => openProductDetail(item)}
                         >
-                          {item.nama}
+                          {item.name}
                         </td>
-                        <td className="px-4 py-2">{item.merk}</td>
-                        <td className="px-4 py-2">{item.stok}</td>
-                        <td className="px-4 py-2">{item.kode}</td>
+                        <td className="px-4 py-2">{item.brand}</td>
                         <td className="px-4 py-2">
-                          {formatNumber(item.harga)}
+                          {item.batches?.reduce(
+                            (total, batch) => total + batch.stock,
+                            0
+                          )}
+                        </td>
+                        <td className="px-4 py-2">{item.code}</td>
+                        <td className="px-4 py-2">
+                          Rp {formatNumber(item.price)}
                         </td>
                         <td className="px-4 py-2">
                           <div className="flex justify-center gap-2">
@@ -385,10 +390,20 @@ export default function Produk() {
                           }
                         >
                           <td className="px-4 py-2">{entry.id}</td>
-                          <td className="px-4 py-2">{selectedProduct.nama}</td>
-                          <td className="px-4 py-2">{selectedProduct.merk}</td>
-                          <td className="px-4 py-2">{entry.kadaluwarsa}</td>
-                          <td className="px-4 py-2">{entry.stok}</td>
+                          <td className="px-4 py-2">{selectedProduct.name}</td>
+                          <td className="px-4 py-2">{selectedProduct.brand}</td>
+                          <td className="px-4 py-2">
+                            {" "}
+                            {new Date(entry.expiredDate).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              }
+                            )}
+                          </td>
+                          <td className="px-4 py-2">{entry.stock}</td>
                         </tr>
                       ))
                     ) : (

@@ -14,6 +14,7 @@ import { DateInput } from "@/components/forms/dateInput";
 import { InComingSchema } from "@/utils/api/products/inComingSchema";
 import {
   createProduct,
+  createProductBatch,
   updateProduct,
   getProductId,
 } from "@/utils/api/products/api";
@@ -38,8 +39,8 @@ export default function IncomingProduct() {
   } = useForm({
     resolver: zodResolver(InComingSchema),
     defaultValues: {
-      harga: 0,
-      stok: 0,
+      price: 0,
+      stock: 0,
     },
   });
 
@@ -59,14 +60,14 @@ export default function IncomingProduct() {
       if (result.data) {
         const data = result.data;
         setSelectedId(data.id);
-        setValue("nama", data.nama);
-        setValue("harga", data.harga);
-        setValue("merk", data.merk);
-        setValue("tanggal_masuk", data.tanggal_masuk);
-        setValue("kategori", data.kategori);
-        setValue("kadaluwarsa", data.kadaluwarsa);
-        setValue("kode", data.kode);
-        setValue("stok", data.stok);
+        setValue("name", data.name);
+        setValue("price", data.price);
+        setValue("brand", data.brand);
+        setValue("entryDate", data.entryDate);
+        setValue("category", data.category);
+        setValue("expiredDate", data.expiredDate);
+        setValue("code", data.code);
+        setValue("stock", data.stock);
       }
     } catch (error) {
       toast.addToast({
@@ -77,7 +78,7 @@ export default function IncomingProduct() {
             <span className="ml-2">Gagal Mendapatkan Data</span>
           </div>
         ),
-        description: <span className="ml-7">Data produk tidak ditemukan!</span>,
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -108,11 +109,7 @@ export default function IncomingProduct() {
             <span className="ml-2">Gagal Menambahkan Produk</span>
           </div>
         ),
-        description: (
-          <span className="ml-7">
-            Data produk gagal ditambahkan! pastikan isi data dengan benar
-          </span>
-        ),
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -150,11 +147,7 @@ export default function IncomingProduct() {
             <span className="ml-2">Gagal Memperbarui Produk</span>
           </div>
         ),
-        description: (
-          <span className="ml-7">
-            Data produk gagal diedit! pastikan isi data dengan benar
-          </span>
-        ),
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -177,6 +170,7 @@ export default function IncomingProduct() {
             onClick={() => {
               if (!isEditingProdukMasuk) {
                 navigate("/produk-masuk");
+                stock;
               }
             }}
             disabled={isEditingProdukMasuk}
@@ -214,23 +208,23 @@ export default function IncomingProduct() {
               {/* Nama Produk */}
               <div className="flex flex-col">
                 <Input
-                  id="nama"
-                  name="nama"
+                  id="name"
+                  name="name"
                   label="Nama Produk"
                   type="text"
-                  error={errors.nama?.message}
+                  error={errors.name?.message}
                   register={register}
                 />
               </div>
 
-              {/* Harga */}
+              {/* harga */}
               <div className="flex flex-col">
                 <Input
-                  id="harga"
-                  name="harga"
+                  id="price"
+                  name="price"
                   label="Harga"
                   type="number"
-                  error={errors.harga?.message}
+                  error={errors.price?.message}
                   register={register}
                 />
                 <label className="mt-1 flex items-center gap-2 text-sm">
@@ -242,11 +236,11 @@ export default function IncomingProduct() {
               {/* Merk */}
               <div className="flex flex-col">
                 <Input
-                  id="merk"
-                  name="merk"
+                  id="brand"
+                  name="brand"
                   label="Merk"
                   type="text"
-                  error={errors.merk?.message}
+                  error={errors.brand?.message}
                   register={register}
                 />
               </div>
@@ -254,12 +248,12 @@ export default function IncomingProduct() {
               {/* Tanggal Masuk */}
               <div className="flex flex-col">
                 <DateInput
-                  id="tanggal_masuk"
-                  name="tanggal_masuk"
+                  id="entryDate"
+                  name="entryDate"
                   label="Tanggal Masuk"
-                  onDateChange={(date) => setValue("tanggal_masuk", date)}
+                  onDateChange={(date) => setValue("entryDate", date)}
                   register={register}
-                  error={errors.tanggal_masuk?.message}
+                  error={errors.entryDate?.message}
                   clearErrors={clearErrors}
                 />
               </div>
@@ -267,25 +261,30 @@ export default function IncomingProduct() {
               {/* Kategori */}
               <div className="flex flex-col">
                 <Select
-                  id="kategori"
-                  aria-label="kategori"
+                  id="category"
+                  aria-label="category"
                   label="Kategori"
-                  name="kategori"
-                  options={["Obat Bebas", "Obat Keras", "Konsi", "Alkes"]}
+                  name="category"
+                  options={[
+                    "OBAT_BEBAS_TERBATAS",
+                    "OBAT_KERAS",
+                    "KONSI",
+                    "ALKES",
+                  ]}
                   register={register}
-                  error={errors.kategori?.message}
+                  error={errors.category?.message}
                 />
               </div>
 
               {/* Kadaluwarsa */}
               <div className="flex flex-col">
                 <DateInput
-                  id="kadaluwarsa"
-                  name="kadaluwarsa"
+                  id="expiredDate"
+                  name="expiredDate"
                   label="Kadaluwarsa"
-                  onDateChange={(date) => setValue("kadaluwarsa", date)}
+                  onDateChange={(date) => setValue("expiredDate", date)}
                   register={register}
-                  error={errors.kadaluwarsa?.message}
+                  error={errors.expiredDate?.message}
                   clearErrors={clearErrors}
                 />
               </div>
@@ -293,11 +292,11 @@ export default function IncomingProduct() {
               {/* Kode Produk */}
               <div className="flex flex-col">
                 <Input
-                  id="kode"
-                  name="kode"
+                  id="code"
+                  name="code"
                   label="Kode Produk"
                   type="text"
-                  error={errors.kode?.message}
+                  error={errors.code?.message}
                   register={register}
                 />
               </div>
@@ -305,11 +304,11 @@ export default function IncomingProduct() {
               {/* Stok */}
               <div className="flex flex-col">
                 <Input
-                  id="stok"
-                  name="stok"
+                  id="stock"
+                  name="stock"
                   label="Stok per pcs"
                   type="number"
-                  error={errors.stok?.message}
+                  error={errors.stock?.message}
                   register={register}
                 />
               </div>

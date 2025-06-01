@@ -35,10 +35,20 @@ export default function PharmacyReport() {
   async function fetchData() {
     try {
       const result = await getReport();
-      setReport(result);
-      setFilteredReport(result);
-      setReport2(result);
-      setFilteredReport2(result);
+      const mapped = result.map((item) => ({
+        id: item.id,
+        name: item.batch.product.name,
+        brand: item.batch.product.brand,
+        category: item.batch.product.category,
+        quantity: item.quantity,
+        basePrice: item.batch.basePrice,
+        salePrice: item.batch.salePrice,
+      }));
+
+      setReport(mapped);
+      setFilteredReport(mapped);
+      setReport2(mapped);
+      setFilteredReport2(mapped);
     } catch (error) {
       toast.addToast({
         variant: "destructive",
@@ -244,10 +254,10 @@ export default function PharmacyReport() {
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
                         <td className="px-4 py-2">{item.id}</td>
-                        <td className="px-4 py-2">{item.nama}</td>
-                        <td className="px-4 py-2">{item.merk}</td>
-                        <td className="px-4 py-2">{item.harga}</td>
-                        <td className="px-4 py-2">{item.jumlah}</td>
+                        <td className="px-4 py-2">{item.name}</td>
+                        <td className="px-4 py-2">{item.brand}</td>
+                        <td className="px-4 py-2">{item.basePrice}</td>
+                        <td className="px-4 py-2">{item.quantity}</td>
                       </tr>
                     ))
                   ) : (
@@ -323,10 +333,10 @@ export default function PharmacyReport() {
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
                         <td className="px-4 py-2">{item.id}</td>
-                        <td className="px-4 py-2">{item.nama}</td>
-                        <td className="px-4 py-2">{item.merk}</td>
-                        <td className="px-4 py-2">{item.harga}</td>
-                        <td className="px-4 py-2">{item.harga_jual}</td>
+                        <td className="px-4 py-2">{item.name}</td>
+                        <td className="px-4 py-2">{item.brand}</td>
+                        <td className="px-4 py-2">{item.basePrice}</td>
+                        <td className="px-4 py-2">{item.salePrice}</td>
                         <td className="px-4 py-2">{item.jumlah}</td>
                       </tr>
                     ))
