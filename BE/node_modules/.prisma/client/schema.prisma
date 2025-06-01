@@ -1,0 +1,93 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  KARYAWAN
+  SUPER_ADMIN
+}
+
+enum KategoriProduk {
+  OBAT_BEBAS
+  OBAT_KERAS
+  KONSI
+  ALKES
+}
+
+enum StatusKeluar {
+  TERJUAL
+  KADALUARSA
+  RUSAK
+  TIDAK_SESUAI
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(KARYAWAN)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produkMasuk  ProdukMasuk[]  @relation("UserProdukMasuk")
+  produkKeluar ProdukKeluar[] @relation("UserProdukKeluar")
+}
+
+model Produk {
+  id         Int            @id @default(autoincrement())
+  nama       String
+  merk       String
+  kodeProduk String         @unique
+  kategori   KategoriProduk
+  hargaModal Float // default harga modal (rata-rata)
+  hargaJual  Float
+  stok       Int            @default(0) // hasil agregasi dari stokBatch.sisaStok
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  stokBatch    ProdukStokKadaluarsa[] @relation("ProdukStok")
+  produkMasuk  ProdukMasuk[]
+  produkKeluar ProdukKeluar[]
+}
+
+model ProdukStokKadaluarsa {
+  id         Int       @id @default(autoincrement())
+  produkId   Int
+  produk     Produk    @relation("ProdukStok", fields: [produkId], references: [id])
+  stokAwal   Int
+  sisaStok   Int
+  tanggalExp DateTime?
+}
+
+model ProdukMasuk {
+  id           Int       @id @default(autoincrement())
+  produkId     Int
+  produk       Produk    @relation(fields: [produkId], references: [id])
+  userId       Int
+  user         User      @relation("UserProdukMasuk", fields: [userId], references: [id])
+  jumlah       Int
+  hargaModal   Float // Harga per unit sudah termasuk PPN jika dicentang
+  tanggalMasuk DateTime
+  tanggalExp   DateTime?
+}
+
+model ProdukKeluar {
+  id            Int          @id @default(autoincrement())
+  produkId      Int
+  produk        Produk       @relation(fields: [produkId], references: [id])
+  userId        Int
+  user          User         @relation("UserProdukKeluar", fields: [userId], references: [id])
+  jumlah        Int
+  hargaModal    Float // Harga modal per unit saat produk keluar (bisa dari batch FEFO)
+  hargaJual     Float // Harga jual per unit
+  keuntungan    Float // (hargaJual - hargaModal) * jumlah jika status = TERJUAL
+  status        StatusKeluar
+  tanggalKeluar DateTime
+}
