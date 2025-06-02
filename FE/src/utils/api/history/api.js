@@ -2,7 +2,7 @@ import axiosWithConfig from "../axiosWithConfig";
 
 export const getHistory = async () => {
   try {
-    const response = await axiosWithConfig.get("api/v1/riwayat");
+    const response = await axiosWithConfig.get("/riwayat");
 
     return response.data;
   } catch (error) {

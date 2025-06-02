@@ -5,7 +5,7 @@ import { IoIosSearch, IoIosWarning } from "react-icons/io";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { GoTrash } from "react-icons/go";
 import { debounce } from "lodash";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
@@ -21,7 +21,6 @@ import Delete from "@/utils/sweetalert/delete";
 
 export default function UserSetting() {
   const toast = useToast();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState([]);

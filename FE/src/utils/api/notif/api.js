@@ -4,7 +4,7 @@ import axiosWithConfig from "../axiosWithConfig";
 
 export const getAllNotifications = async () => {
   try {
-    const response = await axiosWithConfig.get("/api/v1/notifikasi");
+    const response = await axiosWithConfig.get("/notifikasi");
     // Backend mengembalikan { data: [ … ] }
     return response.data.data;
   } catch (error) {

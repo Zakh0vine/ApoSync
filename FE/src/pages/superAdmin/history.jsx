@@ -28,7 +28,6 @@ export default function History() {
     try {
       setIsLoading(true);
       const result = await getHistory();
-      // result.data adalah array riwayat dari BE
       setHistory(result.data);
       setFilteredHistory(result.data);
     } catch (error) {
@@ -40,9 +39,7 @@ export default function History() {
             <span className="ml-2">Gagal Mendapatkan Riwayat</span>
           </div>
         ),
-        description: (
-          <span className="ml-7">Data riwayat tidak ditemukan!</span>
-        ),
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -154,7 +151,7 @@ export default function History() {
 
         {/* Tabel Riwayat */}
         <div className="w-full overflow-x-auto">
-          <div className="min-w-max w-full">
+          <div className="min-w-[1000px]">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
             {isLoading ? (
               <Loader fullScreen={false} className="py-14" />
@@ -203,7 +200,17 @@ export default function History() {
                             timeStyle: "short",
                           })}
                         </td>
-                        <td className="px-4 py-2">{item.status}</td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`px-3 py-1 text-sm rounded-md font-semibold text-white ${
+                              item.status === "MASUK"
+                                ? "bg-[#23B000]"
+                                : "bg-[#F02626]"
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
                         <td className="px-4 py-2">{item.subStatus || "-"}</td>
                         <td className="px-4 py-2">{item.user}</td>
                       </tr>

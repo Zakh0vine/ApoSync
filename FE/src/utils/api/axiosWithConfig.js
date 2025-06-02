@@ -10,7 +10,7 @@ axiosWithConfig.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  config.baseURL = "http://localhost:5000";
+  config.baseURL = "http://localhost:5000/api/v1";
   return config;
 });
 
