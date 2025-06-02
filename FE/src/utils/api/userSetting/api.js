@@ -2,7 +2,7 @@ import axiosWithConfig from "../axiosWithConfig";
 
 export const getUser = async () => {
   try {
-    const response = await axiosWithConfig.get("/api/users");
+    const response = await axiosWithConfig.get("/api/v1/users");
 
     return response.data;
   } catch (error) {
@@ -12,7 +12,7 @@ export const getUser = async () => {
 
 export const toggleUser = async (id) => {
   try {
-    const response = await axiosWithConfig.patch(`/api/users/${id}/toggle`);
+    const response = await axiosWithConfig.patch(`/api/v1/users/${id}/toggle`);
     return response.data;
   } catch (error) {
     throw Error(error.response.data.message);
@@ -24,7 +24,7 @@ export const createUser = async (data) => {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.post("/api/users", newData);
+    const response = await axiosWithConfig.post("/api/v1/users", newData);
 
     return response.data;
   } catch (error) {
@@ -38,7 +38,7 @@ export const updateUser = async (data) => {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.put(`/api/users/${id}`, newData);
+    const response = await axiosWithConfig.put(`/api/v1/users/${id}`, newData);
 
     return response.data;
   } catch (error) {
@@ -48,7 +48,7 @@ export const updateUser = async (data) => {
 
 export const deleteUser = async (id) => {
   try {
-    const response = await axiosWithConfig.delete("/api/users/" + id);
+    const response = await axiosWithConfig.delete("/api/v1/users/${id}" + id);
 
     return response.data;
   } catch (error) {

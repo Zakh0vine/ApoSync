@@ -1,186 +1,189 @@
+// FE/src/pages/Report.jsx
+
 import { useEffect, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
-import { FaRegCheckCircle } from "react-icons/fa";
 
 import reportImage from "@/assets/report.png";
 import Layout from "@/components/Layout";
 import Filter from "@/components/filter";
 import { Button } from "@/components/button";
 import Pagination from "@/components/pagination";
-import { getReport } from "@/utils/api/report/api";
+import {
+  getReportPersediaan,
+  getReportLaba,
+  downloadReportPDF,
+} from "@/utils/api/report/api";
 import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function PharmacyReport() {
   const toast = useToast();
-  const [report, setReport] = useState([]);
-  const [filteredReport, setFilteredReport] = useState([]);
-  const [reportSearch, setReportSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const [report2, setReport2] = useState([]);
-  const [filteredReport2, setFilteredReport2] = useState([]);
-  const [reportSearch2, setReportSearch2] = useState("");
-  const [selectedCategory2, setSelectedCategory2] = useState("");
-  const [currentPage2, setCurrentPage2] = useState(1);
+  // → State untuk Persediaan
+  const [persediaan, setPersediaan] = useState([]);
+  const [filteredPersediaan, setFilteredPersediaan] = useState([]);
+  const [searchPersediaan, setSearchPersediaan] = useState("");
+  const [selectedKategoriPers, setSelectedKategoriPers] = useState(null);
+  const [currentPagePers, setCurrentPagePers] = useState(1);
 
-  const [itemsPerPage] = useState(10);
+  // → State untuk Laba Keuntungan
+  const [laba, setLaba] = useState([]);
+  const [filteredLaba, setFilteredLaba] = useState([]);
+  const [searchLaba, setSearchLaba] = useState("");
+  const [selectedKategoriLaba, setSelectedKategoriLaba] = useState(null);
+  const [currentPageLaba, setCurrentPageLaba] = useState(1);
+
+  const itemsPerPage = 10;
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchAllReports();
   }, []);
 
-  async function fetchData() {
+  async function fetchAllReports() {
     try {
-      const result = await getReport();
-      const mapped = result.map((item) => ({
-        id: item.id,
-        name: item.batch.product.name,
-        brand: item.batch.product.brand,
-        category: item.batch.product.category,
-        quantity: item.quantity,
-        basePrice: item.batch.basePrice,
-        salePrice: item.batch.salePrice,
-      }));
+      setIsLoading(true);
 
-      setReport(mapped);
-      setFilteredReport(mapped);
-      setReport2(mapped);
-      setFilteredReport2(mapped);
+      // 1) Ambil data Persediaan
+      const persediaanData = await getReportPersediaan();
+
+      // 2) Ambil data Laba
+      const labaData = await getReportLaba();
+
+      // Simpan ke state
+      setPersediaan(persediaanData);
+      setFilteredPersediaan(persediaanData);
+      setLaba(labaData);
+      setFilteredLaba(labaData);
     } catch (error) {
       toast.addToast({
         variant: "destructive",
         title: (
           <div className="flex items-center">
-            <IoIosWarning className="size-5" />
+            <IoIosWarning className="text-xl text-red-600" />
             <span className="ml-2">Gagal Mendapatkan Laporan</span>
           </div>
         ),
-        description: (
-          <span className="ml-7">Data laporan tidak ditemukan!</span>
-        ),
+        description: <span className="ml-7">Cek koneksi atau server.</span>,
       });
     } finally {
       setIsLoading(false);
     }
   }
 
-  const handleReportSearch = (e) => {
-    const term = e.target.value;
-    setReportSearch(term);
+  const handleSearchPers = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchPersediaan(term);
 
-    let filtered = report;
-
-    if (selectedCategory) {
-      filtered = filtered.filter(
-        (product) => product.kategori === selectedCategory
+    let temp = persediaan;
+    if (selectedKategoriPers) {
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk
+            .toLowerCase()
+            .includes(selectedKategoriPers.toLowerCase()) ||
+          item.merekProduk
+            .toLowerCase()
+            .includes(selectedKategoriPers.toLowerCase())
       );
     }
-
-    if (term.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(term.toLowerCase()) ||
-          product.merk.toLowerCase().includes(term.toLowerCase())
+    if (term !== "") {
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk.toLowerCase().includes(term) ||
+          item.merekProduk.toLowerCase().includes(term) ||
+          item.kodeProduk.toLowerCase().includes(term)
       );
     }
-
-    setFilteredReport(filtered);
-    setCurrentPage(1);
+    setFilteredPersediaan(temp);
+    setCurrentPagePers(1);
   };
 
-  const handleFilterCategory = (category) => {
-    setSelectedCategory(category);
+  const handleFilterPers = (kategori) => {
+    setSelectedKategoriPers(kategori);
 
-    let filtered = report;
-
-    // Jika kategori dipilih (bukan null), filter berdasarkan kategori
-    if (category) {
-      filtered = filtered.filter((product) => product.kategori === category);
-    }
-
-    // Terapkan filter pencarian jika ada
-    if (reportSearch.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(reportSearch.toLowerCase()) ||
-          product.merk.toLowerCase().includes(reportSearch.toLowerCase())
+    let temp = persediaan;
+    if (kategori) {
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk.toLowerCase().includes(kategori.toLowerCase()) ||
+          item.merekProduk.toLowerCase().includes(kategori.toLowerCase())
       );
     }
-
-    setFilteredReport(filtered);
-    setCurrentPage(1);
-  };
-
-  // Get current products for pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentReport = filteredReport.slice(indexOfFirstItem, indexOfLastItem);
-
-  // Handle page change
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  //============================================================================
-
-  const handleReportSearch2 = (e) => {
-    const term = e.target.value;
-    setReportSearch2(term);
-
-    let filtered = report2;
-
-    if (selectedCategory2) {
-      filtered = filtered.filter(
-        (product) => product.kategori === selectedCategory2
+    if (searchPersediaan.trim() !== "") {
+      const term = searchPersediaan.toLowerCase();
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk.toLowerCase().includes(term) ||
+          item.merekProduk.toLowerCase().includes(term) ||
+          item.kodeProduk.toLowerCase().includes(term)
       );
     }
+    setFilteredPersediaan(temp);
+    setCurrentPagePers(1);
+  };
 
-    if (term.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(term.toLowerCase()) ||
-          product.merk.toLowerCase().includes(term.toLowerCase())
+  // Pagination Persediaan
+  const idxLastPers = currentPagePers * itemsPerPage;
+  const idxFirstPers = idxLastPers - itemsPerPage;
+  const currentPersediaan = filteredPersediaan.slice(idxFirstPers, idxLastPers);
+  const handlePageChangePers = (page) => setCurrentPagePers(page);
+
+  const handleSearchLaba = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchLaba(term);
+
+    let temp = laba;
+    if (selectedKategoriLaba) {
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk
+            .toLowerCase()
+            .includes(selectedKategoriLaba.toLowerCase()) ||
+          item.merekProduk
+            .toLowerCase()
+            .includes(selectedKategoriLaba.toLowerCase())
       );
     }
-
-    setFilteredReport2(filtered);
-    setCurrentPage2(1);
-  };
-
-  const handleFilterCategory2 = (category) => {
-    setSelectedCategory2(category);
-
-    let filtered = report2;
-
-    if (category) {
-      filtered = filtered.filter((product) => product.kategori === category);
-    }
-
-    if (reportSearch2.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(reportSearch2.toLowerCase()) ||
-          product.merk.toLowerCase().includes(reportSearch2.toLowerCase())
+    if (term !== "") {
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk.toLowerCase().includes(term) ||
+          item.merekProduk.toLowerCase().includes(term)
       );
     }
-
-    setFilteredReport2(filtered);
-    setCurrentPage2(1);
+    setFilteredLaba(temp);
+    setCurrentPageLaba(1);
   };
 
-  const indexOfLastItem2 = currentPage2 * itemsPerPage;
-  const indexOfFirstItem2 = indexOfLastItem2 - itemsPerPage;
-  const currentReport2 = filteredReport2.slice(
-    indexOfFirstItem2,
-    indexOfLastItem2
-  );
+  const handleFilterLaba = (kategori) => {
+    setSelectedKategoriLaba(kategori);
 
-  const handlePageChange2 = (pageNumber) => {
-    setCurrentPage2(pageNumber);
+    let temp = laba;
+    if (kategori) {
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk.toLowerCase().includes(kategori.toLowerCase()) ||
+          item.merekProduk.toLowerCase().includes(kategori.toLowerCase())
+      );
+    }
+    if (searchLaba.trim() !== "") {
+      const term = searchLaba.toLowerCase();
+      temp = temp.filter(
+        (item) =>
+          item.namaProduk.toLowerCase().includes(term) ||
+          item.merekProduk.toLowerCase().includes(term)
+      );
+    }
+    setFilteredLaba(temp);
+    setCurrentPageLaba(1);
   };
+
+  // Pagination Laba
+  const idxLastLaba = currentPageLaba * itemsPerPage;
+  const idxFirstLaba = idxLastLaba - itemsPerPage;
+  const currentLaba = filteredLaba.slice(idxFirstLaba, idxLastLaba);
+  const handlePageChangeLaba = (page) => setCurrentPageLaba(page);
 
   return (
     <Layout>
@@ -197,18 +200,34 @@ export default function PharmacyReport() {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 md:gap-3">
-          <div className="w-full sm:w-auto mt-2 sm:mt-0">
-            <Button className="bg-[#23B000] hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold w-full sm:w-auto">
-              Print Laporan
-            </Button>
-          </div>
+        <div className="flex justify-center mb-3 md:mb-4">
+          <Button
+            className="bg-[#23B000] hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+            onClick={async () => {
+              try {
+                await downloadReportPDF();
+              } catch (err) {
+                toast.addToast({
+                  variant: "destructive",
+                  title: (
+                    <div className="flex items-center">
+                      <IoIosWarning className="text-xl text-red-600" />
+                      <span className="ml-2">Gagal Download PDF Laporan</span>
+                    </div>
+                  ),
+                  description: (
+                    <span className="ml-7">Cek koneksi atau server.</span>
+                  ),
+                });
+              }
+            }}
+          >
+            Download PDF Laporan
+          </Button>
         </div>
       </div>
 
-      {/* Sisa Produk */}
-      <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full">
-        {/* Actions */}
+      <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Sisa Produk</h3>
 
@@ -217,20 +236,20 @@ export default function PharmacyReport() {
               <IoIosSearch className="text-white" />
               <input
                 type="text"
-                placeholder="Cari"
-                value={reportSearch}
-                onChange={handleReportSearch}
+                placeholder="Cari nama/merk/kode"
+                value={searchPersediaan}
+                onChange={handleSearchPers}
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
             <Filter
-              onSelectCategory={handleFilterCategory}
-              selectedCategory={selectedCategory}
+              onSelectCategory={handleFilterPers}
+              selectedCategory={selectedKategoriPers}
             />
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto block">
+        <div className="w-full overflow-x-auto">
           <div className="min-w-max w-full">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
             {isLoading ? (
@@ -239,30 +258,30 @@ export default function PharmacyReport() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-[#A7CAF3] text-left">
-                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">No</th>
                     <th className="px-4 py-2">Nama Produk</th>
                     <th className="px-4 py-2">Merk Produk</th>
-                    <th className="px-4 py-2">Harga</th>
-                    <th className="px-4 py-2">Jumlah</th>
+                    <th className="px-4 py-2">Kode Produk</th>
+                    <th className="px-4 py-2">Total Sisa Stok</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {currentReport.length > 0 ? (
-                    currentReport.map((item) => (
+                  {currentPersediaan.length > 0 ? (
+                    currentPersediaan.map((item, idx) => (
                       <tr
-                        key={item.id}
+                        key={`${item.kodeProduk}-${idx}`}
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
-                        <td className="px-4 py-2">{item.id}</td>
-                        <td className="px-4 py-2">{item.name}</td>
-                        <td className="px-4 py-2">{item.brand}</td>
-                        <td className="px-4 py-2">{item.basePrice}</td>
-                        <td className="px-4 py-2">{item.quantity}</td>
+                        <td className="px-4 py-2">{idxFirstPers + idx + 1}</td>
+                        <td className="px-4 py-2">{item.namaProduk}</td>
+                        <td className="px-4 py-2">{item.merekProduk}</td>
+                        <td className="px-4 py-2">{item.kodeProduk}</td>
+                        <td className="px-4 py-2">{item.totalSisaStok}</td>
                       </tr>
                     ))
                   ) : (
                     <tr className="bg-[#9ABCF0]">
-                      <td colSpan="10" className="px-4 py-2 text-center">
+                      <td colSpan="5" className="px-4 py-2 text-center">
                         Tidak ada data yang sesuai
                       </td>
                     </tr>
@@ -273,42 +292,39 @@ export default function PharmacyReport() {
           </div>
         </div>
 
-        {/* Pagination */}
         <div className="mt-6">
           <Pagination
-            totalItems={filteredReport.length}
+            totalItems={filteredPersediaan.length}
             itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            onPageChange={handlePageChange}
+            currentPage={currentPagePers}
+            onPageChange={handlePageChangePers}
           />
         </div>
       </div>
 
-      {/* Laba Keuntungan*/}
-      <div className="bg-white p-4 md:p-6 md:pt-10 mt-10 rounded-lg shadow-md w-full">
+      <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-          <h3 className="text-xl font-semibold">Laba Keuntungan</h3>
+          <h3 className="text-xl font-semibold">Laba Keuntungan (30 hari)</h3>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
               <IoIosSearch className="text-white" />
               <input
                 type="text"
-                placeholder="Cari"
-                value={reportSearch2}
-                onChange={handleReportSearch2}
+                placeholder="Cari nama/merk"
+                value={searchLaba}
+                onChange={handleSearchLaba}
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
             <Filter
-              onSelectCategory={handleFilterCategory2}
-              selectedCategory={selectedCategory2}
+              onSelectCategory={handleFilterLaba}
+              selectedCategory={selectedKategoriLaba}
             />
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto block">
+        <div className="w-full overflow-x-auto">
           <div className="min-w-max w-full">
             <div className="w-full h-0.5 bg-[#6C757D] mb-3"></div>
             {isLoading ? (
@@ -317,32 +333,32 @@ export default function PharmacyReport() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-[#A7CAF3] text-left">
-                    <th className="px-4 py-2">ID</th>
+                    <th className="px-4 py-2">No</th>
                     <th className="px-4 py-2">Nama Produk</th>
                     <th className="px-4 py-2">Merk Produk</th>
-                    <th className="px-4 py-2">Harga Modal+PPN</th>
-                    <th className="px-4 py-2">Harga Jual+25%</th>
+                    <th className="px-4 py-2">Harga Modal</th>
+                    <th className="px-4 py-2">Harga Jual</th>
                     <th className="px-4 py-2">Total Keuntungan</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {currentReport2.length > 0 ? (
-                    currentReport2.map((item) => (
+                  {currentLaba.length > 0 ? (
+                    currentLaba.map((item, idx) => (
                       <tr
-                        key={item.id}
+                        key={`${item.namaProduk}-${idx}`}
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
-                        <td className="px-4 py-2">{item.id}</td>
-                        <td className="px-4 py-2">{item.name}</td>
-                        <td className="px-4 py-2">{item.brand}</td>
-                        <td className="px-4 py-2">{item.basePrice}</td>
-                        <td className="px-4 py-2">{item.salePrice}</td>
-                        <td className="px-4 py-2">{item.jumlah}</td>
+                        <td className="px-4 py-2">{idxFirstLaba + idx + 1}</td>
+                        <td className="px-4 py-2">{item.namaProduk}</td>
+                        <td className="px-4 py-2">{item.merekProduk}</td>
+                        <td className="px-4 py-2">{item.hargaModal}</td>
+                        <td className="px-4 py-2">{item.hargaJual}</td>
+                        <td className="px-4 py-2">{item.totalKeuntungan}</td>
                       </tr>
                     ))
                   ) : (
                     <tr className="bg-[#9ABCF0]">
-                      <td colSpan="10" className="px-4 py-2 text-center">
+                      <td colSpan="6" className="px-4 py-2 text-center">
                         Tidak ada data yang sesuai
                       </td>
                     </tr>
@@ -355,11 +371,10 @@ export default function PharmacyReport() {
 
         <div className="mt-6">
           <Pagination
-            totalItems={filteredReport2.length}
+            totalItems={filteredLaba.length}
             itemsPerPage={itemsPerPage}
-            currentPage={currentPage2}
-            setCurrentPage={setCurrentPage2}
-            onPageChange={handlePageChange2}
+            currentPage={currentPageLaba}
+            onPageChange={handlePageChangeLaba}
           />
         </div>
       </div>

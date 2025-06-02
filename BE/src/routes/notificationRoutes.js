@@ -2,10 +2,10 @@
 
 import express from "express";
 import { getAllNotifications } from "../controllers/notificationController.js";
-import { authKaryawan } from "../middlewares/roleMiddleware.js";
+import { authAny } from "../middlewares/roleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", authKaryawan, getAllNotifications);
+router.get("/", authAny, getAllNotifications);
 
 export default router;

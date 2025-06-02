@@ -1,13 +1,17 @@
+// FE/src/utils/api/report/api.js
+
 import axiosWithConfig from "../axiosWithConfig";
 
-export const getReport = async () => {
-  try {
-    const response = await axiosWithConfig.get(
-      "api/transactions/product-transactions"
-    );
+export const getReportPersediaan = async () => {
+  const response = await axiosWithConfig.get("/api/v1/laporan/persediaan");
+  return response.data.data;
+};
 
-    return response.data;
-  } catch (error) {
-    throw Error("Gagal mendapatkan laporan");
-  }
+export const getReportLaba = async () => {
+  const response = await axiosWithConfig.get("/api/v1/laporan/laba");
+  return response.data.data;
+};
+
+export const downloadReportPDF = async () => {
+  const response = await axiosWithConfig.get("/api/v1/laporan/download-pdf");
 };

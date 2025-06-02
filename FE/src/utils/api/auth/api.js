@@ -2,7 +2,7 @@ import axiosWithConfig from "../axiosWithConfig";
 
 export const login = async (email, password) => {
   try {
-    const response = await axiosWithConfig.post(`/auth/login`, {
+    const response = await axiosWithConfig.post(`/api/v1/auth/login`, {
       email,
       password,
     });

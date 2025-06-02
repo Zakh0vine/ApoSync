@@ -164,7 +164,7 @@ export const downloadLaporanPDF = async (req, res) => {
     doc
       .font("Helvetica-Bold")
       .fontSize(18)
-      .text("Laporan Persediaan & Laba Keuntungan", {
+      .text("Laporan Persediaan & Laba Keuntungan\nApotek Dian Brata Medika", {
         align: "center",
       });
     doc.moveDown(1);
