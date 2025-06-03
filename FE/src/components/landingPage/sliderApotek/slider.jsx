@@ -10,7 +10,7 @@ import ResepDokter from "@/assets/apotek/resepDokter.png";
 import Alkes from "@/assets/apotek/alkes.png";
 
 import IconDokter from "@/assets/apotek/iconDokter.png";
-import IconApoteker from "@/assets/apotek/IconApoteker.png";
+import IconApoteker from "@/assets/apotek/iconApoteker.png";
 import IconObat from "@/assets/apotek/iconObat.png";
 import IconResep from "@/assets/apotek/iconResep.png";
 import IconAlkes from "@/assets/apotek/iconAlkes.png";
