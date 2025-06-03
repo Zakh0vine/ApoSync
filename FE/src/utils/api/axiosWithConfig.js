@@ -1,29 +1,36 @@
+// FE/src/utils/axiosWithConfig.js
+
 import axios from "axios";
 import Swal from "sweetalert2";
 
 const axiosWithConfig = axios.create();
 
+// Interceptor sebelum request dikirim
 axiosWithConfig.interceptors.request.use((config) => {
+  // Ambil token dari localStorage (jika ada)
   const token = localStorage.getItem("accessToken");
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  config.baseURL = "http://localhost:5000/api/v1";
+  config.baseURL =
+    import.meta.env.VITE_APP_API_URL || "http://localhost:5000/api/v1";
   return config;
 });
 
+// Interceptor untuk response error
 axiosWithConfig.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Jika dapat 401, bersihkan token dan user dari storage, lalu redirect ke login
       const token =
         sessionStorage.getItem("accessToken") ||
         localStorage.getItem("accessToken");
-      sessionStorage.getItem("user") || localStorage.getItem("user");
+      const user =
+        sessionStorage.getItem("user") || localStorage.getItem("user");
 
-      if (token) {
+      if (token || user) {
         sessionStorage.removeItem("accessToken");
         localStorage.removeItem("accessToken");
         sessionStorage.removeItem("user");

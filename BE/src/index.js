@@ -43,7 +43,7 @@ app.use("/api/v1/notifikasi", notificationRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 
 // Health checks
-app.get("/", (req, res) => {
+app.get("/api/v1/health", (req, res) => {
   res.send("🚀 Apotek Backend API is running.");
 });
 
