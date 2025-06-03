@@ -138,7 +138,7 @@ export default function PharmacyReport() {
             <span className="ml-2">Gagal Download PDF Laporan</span>
           </div>
         ),
-        description: <span className="ml-7">Cek koneksi atau server.</span>,
+        escription: <span className="ml-7">{error.message}</span>,
       });
     }
   };
