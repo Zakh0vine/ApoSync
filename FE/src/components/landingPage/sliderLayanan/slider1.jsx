@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Wa from "@/assets/layanan/Wa.png";
+import Wa from "@/assets/layanan/wa.png";
 import BgFotoDokter from "@/assets/layanan/bgFotoDokter.png";
-import FotoDokter from "@/assets/layanan/FotoDokter.png";
+import FotoDokter from "@/assets/layanan/fotoDokter.png";
 
 export default function Slider1() {
   const [isExpanded, setIsExpanded] = useState(false);

@@ -1,7 +1,7 @@
 // FE/src/pages/Notification.jsx
 
 import { useState, useEffect } from "react";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout";
 import { getAllNotifications } from "@/utils/api/notif/api";
 import { useToken } from "@/utils/context/tokenContext";
 

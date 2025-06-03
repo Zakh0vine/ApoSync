@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
 
 import reportImage from "@/assets/report.png";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout";
 import { Button } from "@/components/button";
 import Pagination from "@/components/pagination";
 import {

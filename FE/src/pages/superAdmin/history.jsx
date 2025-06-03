@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layoutayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filterhistory";
 import Pagination from "@/components/Pagination";
 import { getHistory } from "@/utils/api/history/api";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function History() {

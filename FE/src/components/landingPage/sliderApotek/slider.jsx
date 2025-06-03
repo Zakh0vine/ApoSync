@@ -6,7 +6,7 @@ import { Pagination, Autoplay } from "swiper/modules";
 import KonsulDokter from "@/assets/apotek/konsulDokter.png";
 import KonsulApoteker from "@/assets/apotek/konsulApoteker.png";
 import ObatBebas from "@/assets/apotek/obatBebas.png";
-import ResepDokter from "@/assets/apotek/ResepDokter.png";
+import ResepDokter from "@/assets/apotek/resepDokter.png";
 import Alkes from "@/assets/apotek/alkes.png";
 
 import IconDokter from "@/assets/apotek/iconDokter.png";
