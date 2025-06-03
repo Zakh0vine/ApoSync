@@ -3,7 +3,7 @@ import { IoIosWarning } from "react-icons/io";
 
 import Working from "@/assets/working.png";
 import Pharmacy from "@/assets/pharmacy.png";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/loader";
 import Layout from "@/components/layoutayout";
 import { useToast } from "@/utils/toastify/toastProvider";
 import { getDailySummary } from "@/utils/api/dashboard/api";
