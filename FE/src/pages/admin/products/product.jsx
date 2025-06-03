@@ -7,8 +7,8 @@ import { GoTrash } from "react-icons/go";
 import { IoIosSearch, IoMdClose, IoIosWarning } from "react-icons/io";
 
 import { Button } from "@/components/button";
-import Layout from "@/components/Layout";
-import Breadcrumb from "@/components/Breadcrumb";
+import Layout from "@/components/layout";
+import Breadcrumb from "@/components/breadcrumb";
 import Filter from "@/components/filter";
 import Pagination from "@/components/pagination";
 import { getProducts } from "@/utils/api/products/api";
