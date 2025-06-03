@@ -5,7 +5,6 @@ import { IoIosSearch, IoIosWarning } from "react-icons/io";
 
 import reportImage from "@/assets/report.png";
 import Layout from "@/components/Layout";
-import Filter from "@/components/filter";
 import { Button } from "@/components/button";
 import Pagination from "@/components/pagination";
 import {
@@ -23,14 +22,12 @@ export default function PharmacyReport() {
   const [persediaan, setPersediaan] = useState([]);
   const [filteredPersediaan, setFilteredPersediaan] = useState([]);
   const [searchPersediaan, setSearchPersediaan] = useState("");
-  const [selectedKategoriPers, setSelectedKategoriPers] = useState(null);
   const [currentPagePers, setCurrentPagePers] = useState(1);
 
   // → State untuk Laba Keuntungan
   const [laba, setLaba] = useState([]);
   const [filteredLaba, setFilteredLaba] = useState([]);
   const [searchLaba, setSearchLaba] = useState("");
-  const [selectedKategoriLaba, setSelectedKategoriLaba] = useState(null);
   const [currentPageLaba, setCurrentPageLaba] = useState(1);
 
   const itemsPerPage = 10;
@@ -64,7 +61,7 @@ export default function PharmacyReport() {
             <span className="ml-2">Gagal Mendapatkan Laporan</span>
           </div>
         ),
-        description: <span className="ml-7">Cek koneksi atau server.</span>,
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -76,42 +73,7 @@ export default function PharmacyReport() {
     setSearchPersediaan(term);
 
     let temp = persediaan;
-    if (selectedKategoriPers) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk
-            .toLowerCase()
-            .includes(selectedKategoriPers.toLowerCase()) ||
-          item.merekProduk
-            .toLowerCase()
-            .includes(selectedKategoriPers.toLowerCase())
-      );
-    }
     if (term !== "") {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(term) ||
-          item.merekProduk.toLowerCase().includes(term) ||
-          item.kodeProduk.toLowerCase().includes(term)
-      );
-    }
-    setFilteredPersediaan(temp);
-    setCurrentPagePers(1);
-  };
-
-  const handleFilterPers = (kategori) => {
-    setSelectedKategoriPers(kategori);
-
-    let temp = persediaan;
-    if (kategori) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(kategori.toLowerCase()) ||
-          item.merekProduk.toLowerCase().includes(kategori.toLowerCase())
-      );
-    }
-    if (searchPersediaan.trim() !== "") {
-      const term = searchPersediaan.toLowerCase();
       temp = temp.filter(
         (item) =>
           item.namaProduk.toLowerCase().includes(term) ||
@@ -134,41 +96,7 @@ export default function PharmacyReport() {
     setSearchLaba(term);
 
     let temp = laba;
-    if (selectedKategoriLaba) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk
-            .toLowerCase()
-            .includes(selectedKategoriLaba.toLowerCase()) ||
-          item.merekProduk
-            .toLowerCase()
-            .includes(selectedKategoriLaba.toLowerCase())
-      );
-    }
     if (term !== "") {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(term) ||
-          item.merekProduk.toLowerCase().includes(term)
-      );
-    }
-    setFilteredLaba(temp);
-    setCurrentPageLaba(1);
-  };
-
-  const handleFilterLaba = (kategori) => {
-    setSelectedKategoriLaba(kategori);
-
-    let temp = laba;
-    if (kategori) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(kategori.toLowerCase()) ||
-          item.merekProduk.toLowerCase().includes(kategori.toLowerCase())
-      );
-    }
-    if (searchLaba.trim() !== "") {
-      const term = searchLaba.toLowerCase();
       temp = temp.filter(
         (item) =>
           item.namaProduk.toLowerCase().includes(term) ||
@@ -242,10 +170,6 @@ export default function PharmacyReport() {
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
-            <Filter
-              onSelectCategory={handleFilterPers}
-              selectedCategory={selectedKategoriPers}
-            />
           </div>
         </div>
 
@@ -317,10 +241,6 @@ export default function PharmacyReport() {
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
-            <Filter
-              onSelectCategory={handleFilterLaba}
-              selectedCategory={selectedKategoriLaba}
-            />
           </div>
         </div>
 
