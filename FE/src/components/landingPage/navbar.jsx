@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "../Button";
+import { Button } from "@/components/Button";
 import Logo from "@/assets/logo.png";
 import { FiMenu, FiX } from "react-icons/fi";
 
