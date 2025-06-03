@@ -6,7 +6,7 @@ import LandingPage from "@/pages/landingPage";
 import Login from "@/pages/auth/login";
 import Dashboard from "@/pages/dashboard";
 import Notification from "@/pages/notification";
-import Product from "@/pages/admin/products/index";
+import Product from "@/pages/admin/products/product";
 import IncomingProduct from "@/pages/admin/products/incomingProduct";
 import OutcomingProduct from "@/pages/admin/products/outcomingProduct";
 import History from "@/pages/superAdmin/history";
@@ -87,6 +87,10 @@ export default function Router() {
         },
         {
           path: "/produk-keluar",
+          element: <OutcomingProduct />,
+        },
+        {
+          path: "/produk-keluar/:id",
           element: <OutcomingProduct />,
         },
       ],

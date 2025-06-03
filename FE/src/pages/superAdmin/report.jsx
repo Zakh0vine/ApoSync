@@ -1,11 +1,8 @@
-// FE/src/pages/Report.jsx
-
 import { useEffect, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
 
 import reportImage from "@/assets/report.png";
 import Layout from "@/components/Layout";
-import Filter from "@/components/filter";
 import { Button } from "@/components/button";
 import Pagination from "@/components/pagination";
 import {
@@ -23,14 +20,12 @@ export default function PharmacyReport() {
   const [persediaan, setPersediaan] = useState([]);
   const [filteredPersediaan, setFilteredPersediaan] = useState([]);
   const [searchPersediaan, setSearchPersediaan] = useState("");
-  const [selectedKategoriPers, setSelectedKategoriPers] = useState(null);
   const [currentPagePers, setCurrentPagePers] = useState(1);
 
   // → State untuk Laba Keuntungan
   const [laba, setLaba] = useState([]);
   const [filteredLaba, setFilteredLaba] = useState([]);
   const [searchLaba, setSearchLaba] = useState("");
-  const [selectedKategoriLaba, setSelectedKategoriLaba] = useState(null);
   const [currentPageLaba, setCurrentPageLaba] = useState(1);
 
   const itemsPerPage = 10;
@@ -76,42 +71,7 @@ export default function PharmacyReport() {
     setSearchPersediaan(term);
 
     let temp = persediaan;
-    if (selectedKategoriPers) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk
-            .toLowerCase()
-            .includes(selectedKategoriPers.toLowerCase()) ||
-          item.merekProduk
-            .toLowerCase()
-            .includes(selectedKategoriPers.toLowerCase())
-      );
-    }
     if (term !== "") {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(term) ||
-          item.merekProduk.toLowerCase().includes(term) ||
-          item.kodeProduk.toLowerCase().includes(term)
-      );
-    }
-    setFilteredPersediaan(temp);
-    setCurrentPagePers(1);
-  };
-
-  const handleFilterPers = (kategori) => {
-    setSelectedKategoriPers(kategori);
-
-    let temp = persediaan;
-    if (kategori) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(kategori.toLowerCase()) ||
-          item.merekProduk.toLowerCase().includes(kategori.toLowerCase())
-      );
-    }
-    if (searchPersediaan.trim() !== "") {
-      const term = searchPersediaan.toLowerCase();
       temp = temp.filter(
         (item) =>
           item.namaProduk.toLowerCase().includes(term) ||
@@ -134,41 +94,7 @@ export default function PharmacyReport() {
     setSearchLaba(term);
 
     let temp = laba;
-    if (selectedKategoriLaba) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk
-            .toLowerCase()
-            .includes(selectedKategoriLaba.toLowerCase()) ||
-          item.merekProduk
-            .toLowerCase()
-            .includes(selectedKategoriLaba.toLowerCase())
-      );
-    }
     if (term !== "") {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(term) ||
-          item.merekProduk.toLowerCase().includes(term)
-      );
-    }
-    setFilteredLaba(temp);
-    setCurrentPageLaba(1);
-  };
-
-  const handleFilterLaba = (kategori) => {
-    setSelectedKategoriLaba(kategori);
-
-    let temp = laba;
-    if (kategori) {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(kategori.toLowerCase()) ||
-          item.merekProduk.toLowerCase().includes(kategori.toLowerCase())
-      );
-    }
-    if (searchLaba.trim() !== "") {
-      const term = searchLaba.toLowerCase();
       temp = temp.filter(
         (item) =>
           item.namaProduk.toLowerCase().includes(term) ||
@@ -184,6 +110,38 @@ export default function PharmacyReport() {
   const idxFirstLaba = idxLastLaba - itemsPerPage;
   const currentLaba = filteredLaba.slice(idxFirstLaba, idxLastLaba);
   const handlePageChangeLaba = (page) => setCurrentPageLaba(page);
+
+  // Handler untuk tombol Download PDF
+  const onClickDownload = async () => {
+    try {
+      // Panggil API, terima Blob
+      const pdfBlob = await downloadReportPDF();
+
+      // Buat object URL dan buat elemen <a> untuk mendownload
+      const url = window.URL.createObjectURL(
+        new Blob([pdfBlob], { type: "application/pdf" })
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "laporan.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      // Jika terjadi error (401, 500, dsb), tampilkan toast
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="text-xl text-red-600" />
+            <span className="ml-2">Gagal Download PDF Laporan</span>
+          </div>
+        ),
+        description: <span className="ml-7">Cek koneksi atau server.</span>,
+      });
+    }
+  };
 
   return (
     <Layout>
@@ -203,48 +161,26 @@ export default function PharmacyReport() {
         <div className="flex justify-center mb-3 md:mb-4">
           <Button
             className="bg-[#23B000] hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-            onClick={async () => {
-              try {
-                await downloadReportPDF();
-              } catch (err) {
-                toast.addToast({
-                  variant: "destructive",
-                  title: (
-                    <div className="flex items-center">
-                      <IoIosWarning className="text-xl text-red-600" />
-                      <span className="ml-2">Gagal Download PDF Laporan</span>
-                    </div>
-                  ),
-                  description: (
-                    <span className="ml-7">Cek koneksi atau server.</span>
-                  ),
-                });
-              }
-            }}
+            onClick={onClickDownload}
           >
             Download PDF Laporan
           </Button>
         </div>
       </div>
 
+      {/* Bagian Tabel Persediaan */}
       <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Sisa Produk</h3>
 
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
-              <IoIosSearch className="text-white" />
-              <input
-                type="text"
-                placeholder="Cari nama/merk/kode"
-                value={searchPersediaan}
-                onChange={handleSearchPers}
-                className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
-              />
-            </div>
-            <Filter
-              onSelectCategory={handleFilterPers}
-              selectedCategory={selectedKategoriPers}
+          <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
+            <IoIosSearch className="text-white" />
+            <input
+              type="text"
+              placeholder="Cari nama/merk/kode"
+              value={searchPersediaan}
+              onChange={handleSearchPers}
+              className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
             />
           </div>
         </div>
@@ -297,29 +233,25 @@ export default function PharmacyReport() {
             totalItems={filteredPersediaan.length}
             itemsPerPage={itemsPerPage}
             currentPage={currentPagePers}
+            setCurrentPage={setCurrentPagePers}
             onPageChange={handlePageChangePers}
           />
         </div>
       </div>
 
+      {/* Bagian Tabel Laba Keuntungan */}
       <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Laba Keuntungan (30 hari)</h3>
 
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
-              <IoIosSearch className="text-white" />
-              <input
-                type="text"
-                placeholder="Cari nama/merk"
-                value={searchLaba}
-                onChange={handleSearchLaba}
-                className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
-              />
-            </div>
-            <Filter
-              onSelectCategory={handleFilterLaba}
-              selectedCategory={selectedKategoriLaba}
+          <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
+            <IoIosSearch className="text-white" />
+            <input
+              type="text"
+              placeholder="Cari nama/merk"
+              value={searchLaba}
+              onChange={handleSearchLaba}
+              className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
             />
           </div>
         </div>
@@ -374,6 +306,7 @@ export default function PharmacyReport() {
             totalItems={filteredLaba.length}
             itemsPerPage={itemsPerPage}
             currentPage={currentPageLaba}
+            setCurrentPage={setCurrentPageLaba}
             onPageChange={handlePageChangeLaba}
           />
         </div>

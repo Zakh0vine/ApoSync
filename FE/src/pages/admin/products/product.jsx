@@ -96,8 +96,10 @@ export default function Produk() {
       });
 
       if (result.isConfirmed) {
+        // setIsLoading(true);
+        // navigate(`/produk-keluar`);
         setIsLoading(true);
-        navigate(`/produk-keluar`);
+        navigate(`/produk-keluar/${id}`);
       }
     } catch (error) {
       toast.addToast({
@@ -188,9 +190,11 @@ export default function Produk() {
   };
 
   const openProductDetail = (product) => {
-    if (product && product.stokBatch) {
+    if (product && Array.isArray(product.stokBatch)) {
+      // Hanya ambil batch yang masih punya sisaStok > 0
+      const availableBatches = product.stokBatch.filter((b) => b.sisaStok > 0);
       setSelectedProduct(product);
-      setFilteredDetail(product.stokBatch);
+      setFilteredDetail(availableBatches);
     }
   };
 

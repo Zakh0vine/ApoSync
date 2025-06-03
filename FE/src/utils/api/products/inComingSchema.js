@@ -1,12 +1,13 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const InComingSchema = z.object({
-  nama: z.string().min(1, { message: "Nama produk harus diisi" }),
-  hargaModal: z.number().min(1, { message: "Harga produk harus diisi" }),
-  merk: z.string().min(1, { message: "Merk harus diisi" }),
-  tanggalMasuk: z.string().min(1, { message: "Tanggal masuk harus diisi" }),
-  kategori: z.string().min(1, { message: "Kategori harus diisi" }),
-  tanggalExp: z.string().min(1, { message: "Tanggal kadaluwarsa harus diisi" }),
-  kodeProduk: z.string().min(1, { message: "Kode produk harus diisi" }),
-  stok: z.number().min(1, { message: "Stok harus diisi" }),
+  nama: z.string().min(1, "Nama wajib diisi"),
+  merk: z.string().min(1, "Merk wajib diisi"),
+  kategori: z.enum(["OBAT_BEBAS", "OBAT_KERAS", "KONSI", "ALKES"]),
+  kodeProduk: z.string().min(1, "Kode Produk wajib diisi"),
+  hargaModal: z.number().min(1, "Harga Modal harus positif"),
+  stok: z.number().min(0, "Stok minimal 0").optional(),
+  sudahTermasukPPN: z.boolean(),
+  tanggalMasuk: z.string().optional(),
+  tanggalExp: z.string().optional(),
 });

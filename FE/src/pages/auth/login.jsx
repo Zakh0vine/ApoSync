@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+// src/pages/Login.jsx
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +20,7 @@ export default function Login() {
   const { saveTokenAndUser } = useToken();
   const [showPassword, setShowPassword] = useState(false);
 
+  // Konfigurasi React Hook Form dengan Zod:
   const {
     register,
     handleSubmit,
@@ -26,34 +29,42 @@ export default function Login() {
     resolver: zodResolver(authSchema),
   });
 
+  // Handler saat form submit
   const onSubmit = async (data) => {
     try {
+      // Panggil API login(email, password)
       const result = await login(data.email, data.password);
 
+      // Simpan token ke localStorage (atau sesuai kebutuhan)
       localStorage.setItem("accessToken", result.token);
-
+      // Simpan user dan token di context/global state
       saveTokenAndUser(result.token, result.user, true);
+
+      // Arahkan ke dashboard
       navigate("/dashboard");
     } catch (error) {
+      // Tangani semua jenis error (401, 500, dsb) dengan SweetAlert
       Swal.fire({
         icon: "error",
-        title: "Periksa akun anda kembali",
+        title: "Login Gagal",
         text: error.message,
       });
     }
   };
 
+  // Toggle tampilan password
   const handleShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Navbar */}
       <Navbar />
 
-      {/* Main content */}
+      {/* Konten Utama */}
       <div className="flex flex-1 flex-col md:flex-row items-center justify-center px-4 py-6 md:py-0">
-        {/* Left side - Logo besar (Hidden on small screens) */}
+        {/* Bagian Kiri: Logo (hanya ditampilkan di layar medium ke atas) */}
         <div className="w-full md:w-1/2 flex justify-center items-center mb-8 md:mb-0">
           <div className="max-w-xs md:max-w-md w-full px-4 md:px-8">
             <img
@@ -64,7 +75,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right side - Login Form */}
+        {/* Bagian Kanan: Form Login */}
         <div className="w-full md:w-1/2 flex flex-col justify-center px-4 md:px-8">
           <div className="max-w-md w-full mx-auto">
             <h2 className="text-center text-2xl md:text-3xl font-bold mb-2">
@@ -78,26 +89,27 @@ export default function Login() {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-4 md:space-y-6"
             >
+              {/* Input Email */}
               <div>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
                   placeholder="E-mail"
                   className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg bg-gray-200"
                   error={errors.email?.message}
-                  register={register}
+                  {...register("email")}
                 />
               </div>
+
+              {/* Input Password dengan toggle show/hide */}
               <div className="relative">
                 <Input
                   id="password"
-                  name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Kata Sandi"
                   className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg bg-gray-200"
                   error={errors.password?.message}
-                  register={register}
+                  {...register("password")}
                 />
                 {showPassword ? (
                   <IoEyeOffOutline
@@ -111,6 +123,8 @@ export default function Login() {
                   />
                 )}
               </div>
+
+              {/* Tombol Masuk */}
               <div className="mt-2">
                 <Button
                   type="submit"
