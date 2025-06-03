@@ -2,26 +2,20 @@ import axiosWithConfig from "../axiosWithConfig";
 
 export const getProducts = async () => {
   try {
-    const response = await axiosWithConfig.get("/api/products/product");
+    const response = await axiosWithConfig.get("/products");
 
     return response.data;
   } catch (error) {
-    const errorMessage =
-      error?.response?.data?.error ||
-      "Terjadi kesalahan saat mendapatkan produk";
-    throw new Error(errorMessage);
+    throw Error(error.response.data.message);
   }
 };
 
 export const getProductId = async (id) => {
   try {
-    const response = await axiosWithConfig.get(`/api/products/product/${id}`);
+    const response = await axiosWithConfig.get(`/products/${id}`);
     return response;
   } catch (error) {
-    const errorMessage =
-      error?.response?.data?.error ||
-      "Terjadi kesalahan saat mendapatkan id produk";
-    throw new Error(errorMessage);
+    throw Error(error.response.data.message);
   }
 };
 
@@ -30,36 +24,37 @@ export const createProduct = async (data) => {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.post(
-      "/api/products/product",
-      newData
-    );
+    const response = await axiosWithConfig.post("/products", newData);
 
     return response.data;
   } catch (error) {
-    const errorMessage =
-      error?.response?.data?.error ||
-      "Terjadi kesalahan saat membuat produk baru";
-    throw new Error(errorMessage);
+    throw Error(error.response.data.message);
   }
 };
 
-export const createProductBatch = async (data) => {
+export const createProductIn = async (data) => {
   try {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.post(
-      "/api/batches/product-batches",
-      newData
-    );
+    const response = await axiosWithConfig.post("/produkin", newData);
 
     return response.data;
   } catch (error) {
-    const errorMessage =
-      error?.response?.data?.error ||
-      "Terjadi kesalahan saat membuat produk baru";
-    throw new Error(errorMessage);
+    throw Error(error.response.data.message);
+  }
+};
+
+export const createProductOut = async (data) => {
+  try {
+    const newData = {
+      ...data,
+    };
+    const response = await axiosWithConfig.post("/produkout", newData);
+
+    return response.data;
+  } catch (error) {
+    throw Error(error.response.data.message);
   }
 };
 
@@ -69,16 +64,11 @@ export const updateProduct = async (data) => {
     const newData = {
       ...data,
     };
-    const response = await axiosWithConfig.put(
-      `/api/products/product/${id}`,
-      newData
-    );
+    const response = await axiosWithConfig.put(`/products/${id}`, newData);
 
     return response.data;
   } catch (error) {
-    const errorMessage =
-      error?.response?.data?.error || "Terjadi kesalahan saat update produk";
-    throw new Error(errorMessage);
+    throw Error(error.response.data.message);
   }
 };
 
@@ -88,8 +78,6 @@ export const deleteProduct = async (id) => {
 
     return response.data;
   } catch (error) {
-    const errorMessage =
-      error?.response?.data?.error || "Terjadi kesalahan saat menghapus produk";
-    throw new Error(errorMessage);
+    throw Error(error.response.data.message);
   }
 };

@@ -5,14 +5,13 @@ import { TiPlusOutline } from "react-icons/ti";
 import { TbEdit } from "react-icons/tb";
 import { GoTrash } from "react-icons/go";
 import { IoIosSearch, IoMdClose, IoIosWarning } from "react-icons/io";
-import { FaRegCheckCircle } from "react-icons/fa";
 
 import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filter";
 import Pagination from "@/components/pagination";
-import { getProducts, deleteProduct } from "@/utils/api/products/api";
+import { getProducts } from "@/utils/api/products/api";
 import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 import Delete from "@/utils/sweetalert/delete";
@@ -43,8 +42,9 @@ export default function Produk() {
   async function fetchData() {
     try {
       const result = await getProducts();
-      setProducts(result);
-      setFilteredProducts(result);
+      const productsData = result.data || result;
+      setProducts(productsData);
+      setFilteredProducts(productsData);
     } catch (error) {
       toast.addToast({
         variant: "destructive",
@@ -54,7 +54,7 @@ export default function Produk() {
             <span className="ml-2">Gagal Mendapatkan Data</span>
           </div>
         ),
-        description: <span className="ml-7">Data produk tidak ditemukan!</span>,
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -81,7 +81,7 @@ export default function Produk() {
             <span className="ml-2">Gagal Mengedit Data!</span>
           </div>
         ),
-        description: <span className="ml-7">Data produk gagal diedit!</span>,
+        description: <span className="ml-7">{error.message}</span>,
       });
     } finally {
       setIsLoading(false);
@@ -97,22 +97,7 @@ export default function Produk() {
 
       if (result.isConfirmed) {
         setIsLoading(true);
-        await deleteProduct(id);
-        toast.addToast({
-          variant: "deleted",
-          title: (
-            <div className="flex items-center">
-              <FaRegCheckCircle className="size-5" />
-              <span className="ml-2">Berhasil Menghapus Data</span>
-            </div>
-          ),
-          description: (
-            <span className="ml-7">
-              Data yang dihapus tidak dapat dipulihkan!
-            </span>
-          ),
-        });
-        fetchData();
+        navigate(`/produk-keluar`);
       }
     } catch (error) {
       toast.addToast({
@@ -148,7 +133,7 @@ export default function Produk() {
         (product) =>
           product.nama.toLowerCase().includes(term.toLowerCase()) ||
           product.merk.toLowerCase().includes(term.toLowerCase()) ||
-          product.kode.toLowerCase().includes(term.toLowerCase())
+          product.kodeProduk.toLowerCase().includes(term.toLowerCase())
       );
     }
 
@@ -172,7 +157,7 @@ export default function Produk() {
         (product) =>
           product.nama.toLowerCase().includes(productSearch.toLowerCase()) ||
           product.merk.toLowerCase().includes(productSearch.toLowerCase()) ||
-          product.kode.toLowerCase().includes(productSearch.toLowerCase())
+          product.kodeProduk.toLowerCase().includes(productSearch.toLowerCase())
       );
     }
 
@@ -184,22 +169,28 @@ export default function Produk() {
     const term = e.target.value;
     setSearchTerm(term);
 
-    if (!selectedProduct || !selectedProduct.batches) return;
+    if (!selectedProduct || !selectedProduct.stokBatch) return;
 
     if (term.trim() === "") {
-      setFilteredDetail(selectedProduct.batches);
+      setFilteredDetail(selectedProduct.stokBatch);
     } else {
-      const filtered = selectedProduct.batches.filter((item) =>
-        item.expiredDate.toLowerCase().includes(term.toLowerCase())
-      );
+      const filtered = selectedProduct.stokBatch.filter((item) => {
+        if (!item.tanggalExp) return false;
+        const expDate = new Date(item.tanggalExp).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        return expDate.toLowerCase().includes(term.toLowerCase());
+      });
       setFilteredDetail(filtered);
     }
   };
 
   const openProductDetail = (product) => {
-    if (product && product.batches) {
+    if (product && product.stokBatch) {
       setSelectedProduct(product);
-      setFilteredDetail(product.batches);
+      setFilteredDetail(product.stokBatch);
     }
   };
 
@@ -275,28 +266,25 @@ export default function Produk() {
                 </thead>
                 <tbody>
                   {currentProducts.length > 0 ? (
-                    currentProducts.map((item) => (
+                    currentProducts.map((item, index) => (
                       <tr
                         key={item.id}
                         className="even:bg-[#A7CAF3] bg-[#9ABCF0]"
                       >
-                        <td className="px-4 py-2">{item.id}</td>
+                        <td className="px-4 py-2">
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </td>
                         <td
                           className="px-4 py-2 cursor-pointer hover:underline"
                           onClick={() => openProductDetail(item)}
                         >
-                          {item.name}
+                          {item.nama}
                         </td>
-                        <td className="px-4 py-2">{item.brand}</td>
+                        <td className="px-4 py-2">{item.merk}</td>
+                        <td className="px-4 py-2">{item.stok}</td>
+                        <td className="px-4 py-2">{item.kodeProduk}</td>
                         <td className="px-4 py-2">
-                          {item.batches?.reduce(
-                            (total, batch) => total + batch.stock,
-                            0
-                          )}
-                        </td>
-                        <td className="px-4 py-2">{item.code}</td>
-                        <td className="px-4 py-2">
-                          Rp {formatNumber(item.price)}
+                          Rp {formatNumber(item.hargaJual)}
                         </td>
                         <td className="px-4 py-2">
                           <div className="flex justify-center gap-2">
@@ -389,12 +377,14 @@ export default function Produk() {
                             index % 2 === 0 ? "bg-[#9ABCF0]" : "bg-[#A7CAF3]"
                           }
                         >
-                          <td className="px-4 py-2">{entry.id}</td>
-                          <td className="px-4 py-2">{selectedProduct.name}</td>
-                          <td className="px-4 py-2">{selectedProduct.brand}</td>
+                          <td className="px-4 py-2">
+                            {(currentPage - 1) * itemsPerPage + index + 1}
+                          </td>
+                          <td className="px-4 py-2">{selectedProduct.nama}</td>
+                          <td className="px-4 py-2">{selectedProduct.merk}</td>
                           <td className="px-4 py-2">
                             {" "}
-                            {new Date(entry.expiredDate).toLocaleDateString(
+                            {new Date(entry.tanggalExp).toLocaleDateString(
                               "id-ID",
                               {
                                 day: "2-digit",
@@ -403,7 +393,7 @@ export default function Produk() {
                               }
                             )}
                           </td>
-                          <td className="px-4 py-2">{entry.stock}</td>
+                          <td className="px-4 py-2">{entry.sisaStok}</td>
                         </tr>
                       ))
                     ) : (

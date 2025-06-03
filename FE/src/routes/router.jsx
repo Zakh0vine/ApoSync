@@ -41,6 +41,10 @@ export default function Router() {
           path: "/notifikasi",
           element: <Notification />,
         },
+        {
+          path: "/riwayat",
+          element: <History />,
+        },
       ],
     },
     {
@@ -54,10 +58,6 @@ export default function Router() {
         {
           path: "/laporan",
           element: <Report />,
-        },
-        {
-          path: "/riwayat",
-          element: <History />,
         },
         {
           path: "/user-manajemen",

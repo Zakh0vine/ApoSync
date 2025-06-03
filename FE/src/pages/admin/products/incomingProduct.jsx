@@ -14,7 +14,7 @@ import { DateInput } from "@/components/forms/dateInput";
 import { InComingSchema } from "@/utils/api/products/inComingSchema";
 import {
   createProduct,
-  createProductBatch,
+  createProductIn,
   updateProduct,
   getProductId,
 } from "@/utils/api/products/api";
@@ -28,6 +28,7 @@ export default function IncomingProduct() {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(0);
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const {
     reset,
@@ -35,14 +36,18 @@ export default function IncomingProduct() {
     register,
     handleSubmit,
     clearErrors,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(InComingSchema),
     defaultValues: {
-      price: 0,
-      stock: 0,
+      hargaModal: 0,
+      stok: 0,
+      sudahTermasukPPN: false,
     },
   });
+
+  const sudahTermasukPPN = watch("sudahTermasukPPN");
 
   useEffect(() => {
     if (id !== undefined) {
@@ -60,14 +65,10 @@ export default function IncomingProduct() {
       if (result.data) {
         const data = result.data;
         setSelectedId(data.id);
-        setValue("name", data.name);
-        setValue("price", data.price);
-        setValue("brand", data.brand);
-        setValue("entryDate", data.entryDate);
-        setValue("category", data.category);
-        setValue("expiredDate", data.expiredDate);
-        setValue("code", data.code);
-        setValue("stock", data.stock);
+        setValue("nama", data.nama);
+        setValue("merk", data.merk);
+        setValue("hargaModal", data.hargaModal);
+        setValue("kodeProduk", data.kodeProduk);
       }
     } catch (error) {
       toast.addToast({
@@ -87,7 +88,32 @@ export default function IncomingProduct() {
 
   async function onSubmit(data) {
     try {
-      await createProduct(data);
+      setIsLoading(true);
+
+      // Create master product first
+      const productData = {
+        nama: data.nama,
+        merk: data.merk,
+        kodeProduk: data.kodeProduk,
+        kategori: data.kategori,
+        hargaModal: data.hargaModal,
+        sudahTermasukPPN: data.sudahTermasukPPN,
+      };
+
+      await createProduct(productData);
+
+      // Then create batch if stok > 0
+      if (data.stok > 0) {
+        const batchData = {
+          kodeProduk: data.kodeProduk,
+          jumlah: data.stok,
+          userId: user?.id || null,
+          tanggalMasuk: data.tanggalMasuk,
+          tanggalExp: data.tanggalExp,
+        };
+
+        await createProductIn(batchData);
+      }
       toast.addToast({
         title: (
           <div className="flex items-center">
@@ -119,7 +145,16 @@ export default function IncomingProduct() {
   async function onSubmitEdit(data) {
     try {
       setIsLoading(true);
-      await updateProduct({ ...data, id: selectedId });
+
+      const updateData = {
+        id: selectedId,
+        nama: data.nama,
+        merk: data.merk,
+        kodeProduk: data.kodeProduk,
+        hargaModal: data.hargaModal,
+        sudahTermasukPPN: data.sudahTermasukPPN,
+      };
+      await updateProduct(updateData);
 
       toast.addToast({
         variant: "edited",
@@ -170,24 +205,31 @@ export default function IncomingProduct() {
             onClick={() => {
               if (!isEditingProdukMasuk) {
                 navigate("/produk-masuk");
-                stock;
               }
             }}
-            disabled={isEditingProdukMasuk}
             className={`px-4 py-2 rounded-md font-semibold ${
               isMasukActive
                 ? "bg-[#6499E9] text-white hover:bg-blue-500"
                 : "bg-transparent border border-[#6499E9] !text-[#6499E9] hover:bg-transparent hover:text-[#6499E9] hover:border-[#6499E9]"
             } ${isEditingProdukMasuk ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            Produk Masuk
+            {selectedId !== 0 ? "Edit Produk" : "Produk Masuk"}
           </Button>
+
           <Button
-            onClick={() => navigate("/produk-keluar")}
+            onClick={() => {
+              if (!isEditingProdukMasuk && selectedId === 0) {
+                navigate("/produk-keluar");
+              }
+            }}
             className={`px-4 py-2 rounded-md font-semibold ${
               isKeluarActive
                 ? "bg-[#6499E9] text-white hover:bg-blue-500"
                 : "bg-transparent border border-[#6499E9] !text-[#6499E9] hover:bg-transparent hover:text-[#6499E9] hover:border-[#6499E9]"
+            } ${
+              isEditingProdukMasuk || selectedId !== 0
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
           >
             Produk Keluar
@@ -208,11 +250,11 @@ export default function IncomingProduct() {
               {/* Nama Produk */}
               <div className="flex flex-col">
                 <Input
-                  id="name"
-                  name="name"
+                  id="nama"
+                  name="nama"
                   label="Nama Produk"
                   type="text"
-                  error={errors.name?.message}
+                  error={errors.nama?.message}
                   register={register}
                 />
               </div>
@@ -220,15 +262,19 @@ export default function IncomingProduct() {
               {/* harga */}
               <div className="flex flex-col">
                 <Input
-                  id="price"
-                  name="price"
+                  id="hargaModal"
+                  name="hargaModal"
                   label="Harga"
                   type="number"
-                  error={errors.price?.message}
+                  error={errors.hargaModal?.message}
                   register={register}
                 />
                 <label className="mt-1 flex items-center gap-2 text-sm">
-                  <input type="checkbox" className="w-4 h-4" />
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4"
+                    {...register("sudahTermasukPPN")}
+                  />
                   Sudah termasuk PPN 11%
                 </label>
               </div>
@@ -236,82 +282,90 @@ export default function IncomingProduct() {
               {/* Merk */}
               <div className="flex flex-col">
                 <Input
-                  id="brand"
-                  name="brand"
+                  id="merk"
+                  name="merk"
                   label="Merk"
                   type="text"
-                  error={errors.brand?.message}
+                  error={errors.merk?.message}
                   register={register}
                 />
               </div>
 
-              {/* Tanggal Masuk */}
-              <div className="flex flex-col">
-                <DateInput
-                  id="entryDate"
-                  name="entryDate"
-                  label="Tanggal Masuk"
-                  onDateChange={(date) => setValue("entryDate", date)}
-                  register={register}
-                  error={errors.entryDate?.message}
-                  clearErrors={clearErrors}
-                />
-              </div>
+              {/* Tanggal Masuk (hanya create) */}
+              {selectedId === 0 && (
+                <div className="flex flex-col">
+                  <DateInput
+                    id="tanggalMasuk"
+                    name="tanggalMasuk"
+                    label="Tanggal Masuk"
+                    onDateChange={(date) => setValue("tanggalMasuk", date)}
+                    register={register}
+                    error={errors.tanggalMasuk?.message}
+                    clearErrors={clearErrors}
+                  />
+                </div>
+              )}
 
               {/* Kategori */}
-              <div className="flex flex-col">
-                <Select
-                  id="category"
-                  aria-label="category"
-                  label="Kategori"
-                  name="category"
-                  options={[
-                    "OBAT_BEBAS_TERBATAS",
-                    "OBAT_KERAS",
-                    "KONSI",
-                    "ALKES",
-                  ]}
-                  register={register}
-                  error={errors.category?.message}
-                />
-              </div>
+              {selectedId === 0 && (
+                <div className="flex flex-col">
+                  <Select
+                    id="kategori"
+                    aria-label="kategori"
+                    label="Kategori"
+                    name="kategori"
+                    options={[
+                      "OBAT_BEBAS_TERBATAS",
+                      "OBAT_KERAS",
+                      "KONSI",
+                      "ALKES",
+                    ]}
+                    register={register}
+                    error={errors.kategori?.message}
+                  />
+                </div>
+              )}
 
               {/* Kadaluwarsa */}
-              <div className="flex flex-col">
-                <DateInput
-                  id="expiredDate"
-                  name="expiredDate"
-                  label="Kadaluwarsa"
-                  onDateChange={(date) => setValue("expiredDate", date)}
-                  register={register}
-                  error={errors.expiredDate?.message}
-                  clearErrors={clearErrors}
-                />
-              </div>
+              {selectedId === 0 && (
+                <div className="flex flex-col">
+                  <DateInput
+                    id="tanggalExp"
+                    name="tanggalExp"
+                    label="Kadaluarsa"
+                    onDateChange={(date) => setValue("tanggalExp", date)}
+                    register={register}
+                    error={errors.tanggalExp?.message}
+                    clearErrors={clearErrors}
+                  />
+                </div>
+              )}
 
               {/* Kode Produk */}
               <div className="flex flex-col">
                 <Input
-                  id="code"
-                  name="code"
+                  id="kodeProduk"
+                  name="kodeProduk"
                   label="Kode Produk"
                   type="text"
-                  error={errors.code?.message}
+                  error={errors.kodeProduk?.message}
                   register={register}
                 />
               </div>
 
               {/* Stok */}
-              <div className="flex flex-col">
-                <Input
-                  id="stock"
-                  name="stock"
-                  label="Stok per pcs"
-                  type="number"
-                  error={errors.stock?.message}
-                  register={register}
-                />
-              </div>
+              {selectedId === 0 && (
+                <div className="flex flex-col">
+                  <Input
+                    id="stok"
+                    name="stok"
+                    label="Stok per pcs"
+                    type="number"
+                    error={errors.stok?.message}
+                    register={register}
+                  />
+                </div>
+              )}
 
               {/* Tombol */}
               <div className="md:col-span-2 flex justify-end gap-4 mt-6">

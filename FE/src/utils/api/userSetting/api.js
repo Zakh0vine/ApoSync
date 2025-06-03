@@ -10,6 +10,15 @@ export const getUser = async () => {
   }
 };
 
+export const getUserId = async (id) => {
+  try {
+    const response = await axiosWithConfig.get(`/users/${id}`);
+    return response;
+  } catch (error) {
+    throw Error(error.response.data.message);
+  }
+};
+
 export const toggleUser = async (id) => {
   try {
     const response = await axiosWithConfig.patch(`/users/${id}/toggle`);

@@ -28,6 +28,13 @@ const Filter = ({ onSelectCategory, selectedCategory }) => {
     };
   }, []);
 
+  const categories = [
+    { value: "OBAT_BEBAS", label: "OBAT BEBAS" },
+    { value: "OBAT_KERAS", label: "OBAT KERAS" },
+    { value: "KONSI", label: "KONSI" },
+    { value: "ALKES", label: "ALKES" },
+  ];
+
   return (
     <div className="relative w-full md:w-auto" ref={dropdownRef}>
       <button
@@ -39,7 +46,7 @@ const Filter = ({ onSelectCategory, selectedCategory }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 md:left-auto md:right-auto mt-2 rounded-md shadow-lg bg-white flex flex-col gap-1 w-full md:w-32 p-1 z-10">
+        <div className="absolute left-0 right-0 md:left-auto md:right-auto mt-2 rounded-md shadow-lg bg-white flex flex-col gap-1 w-full md:w-32 p-1 !z-50">
           <button
             onClick={() => handleSelect(null)}
             className={`border text-black font-normal rounded-md py-2 ${
@@ -48,19 +55,19 @@ const Filter = ({ onSelectCategory, selectedCategory }) => {
                 : "bg-white border-[#D0D5DD] hover:bg-gray-200"
             }`}
           >
-            Semua
+            SEMUA
           </button>
-          {["Obat Bebas", "Obat Keras", "Konsi", "Alkes"].map((category) => (
+          {categories.map(({ value, label }) => (
             <button
-              key={category}
-              onClick={() => handleSelect(category)}
+              key={value}
+              onClick={() => handleSelect(value)}
               className={`border text-black font-normal rounded-md py-2 ${
-                selectedCategory === category
+                selectedCategory === value
                   ? "!text-[#6499E9] border-[#6499E9] hover:bg-gray-200"
                   : "bg-white border-[#D0D5DD] hover:bg-gray-200"
               }`}
             >
-              {category}
+              {label}
             </button>
           ))}
         </div>

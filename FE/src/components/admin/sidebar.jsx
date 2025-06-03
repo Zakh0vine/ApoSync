@@ -28,16 +28,16 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: "Notifikasi",
       roles: ["SUPER_ADMIN", "KARYAWAN"],
     },
-  ];
-
-  // Menu items khusus untuk SUPER_ADMIN
-  const superAdminMenuItems = [
     {
       to: "/riwayat",
       icon: <RiHistoryLine className="size-6" />,
       label: "Riwayat",
-      roles: ["SUPER_ADMIN"],
+      roles: ["SUPER_ADMIN", "KARYAWAN"],
     },
+  ];
+
+  // Menu items khusus untuk SUPER_ADMIN
+  const superAdminMenuItems = [
     {
       to: "/laporan",
       icon: <LuChartColumnBig className="size-6" />,

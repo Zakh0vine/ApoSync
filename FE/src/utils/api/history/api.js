@@ -6,6 +6,6 @@ export const getHistory = async () => {
 
     return response.data;
   } catch (error) {
-    throw Error("Failed to get history");
+    throw Error(error.response.data.message);
   }
 };

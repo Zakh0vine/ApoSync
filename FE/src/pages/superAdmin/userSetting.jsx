@@ -3,7 +3,6 @@ import { TiPlusOutline } from "react-icons/ti";
 import { TbEdit } from "react-icons/tb";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
 import { FaRegCheckCircle } from "react-icons/fa";
-import { GoTrash } from "react-icons/go";
 import { debounce } from "lodash";
 import { useSearchParams } from "react-router-dom";
 
@@ -198,7 +197,7 @@ export default function UserSetting() {
     setCurrentPage(1);
   };
 
-  const debouncedSearch = useMemo(() => debounce(searchUsers, 300), [user]);
+  const debouncedSearch = useMemo(() => debounce(searchUsers, 800), [user]);
 
   useEffect(() => {
     return () => {
@@ -313,10 +312,6 @@ export default function UserSetting() {
                           <div className="flex justify-center gap-2">
                             <TbEdit
                               onClick={() => handleEditUser(item)}
-                              className="size-5 cursor-pointer"
-                            />
-                            <GoTrash
-                              onClick={() => onClickDelete(item.id)}
                               className="size-5 cursor-pointer"
                             />
                           </div>
