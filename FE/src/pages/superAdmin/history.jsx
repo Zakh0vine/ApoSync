@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
-import Layout from "@/components/layoutayout";
+import Layout from "@/components/layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filterhistory";
 import Pagination from "@/components/Pagination";
