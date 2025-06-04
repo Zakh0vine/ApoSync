@@ -50,3 +50,8 @@ app.use("/api/v1/dashboard", dashboardRoutes);
 app.get("/api/v1/health", (req, res) => {
   res.send("🚀 Apotek Backend API is running.");
 });
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server is listening at http://localhost:${PORT}`);
+});
