@@ -6,7 +6,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const prisma = new PrismaClient();
-const { SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD } = process.env;
+const { SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, SUPER_ADMIN_NAME } =
+  process.env;
 
 async function main() {
   if (!SUPER_ADMIN_EMAIL || !SUPER_ADMIN_PASSWORD) {
@@ -37,7 +38,7 @@ async function main() {
 
     const newSuperAdmin = await prisma.user.create({
       data: {
-        name: "ADMIN GALAK",
+        name: SUPER_ADMIN_NAME,
         email: SUPER_ADMIN_EMAIL,
         password: hashedPassword,
         role: "SUPER_ADMIN",

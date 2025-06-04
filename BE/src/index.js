@@ -19,7 +19,7 @@ dotenv.config();
 // App setup
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL || "http://www.dianbratamedika.com";
 
 // Middleware
 app.use(
@@ -45,9 +45,4 @@ app.use("/api/v1/dashboard", dashboardRoutes);
 // Health checks
 app.get("/api/v1/health", (req, res) => {
   res.send("🚀 Apotek Backend API is running.");
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is listening at http://localhost:${PORT}`);
 });
