@@ -28,7 +28,6 @@ export default function Produk() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filteredDetail, setFilteredDetail] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const initialSearch = searchParams.get("search") || "";
   const initialCategory = searchParams.get("filter") || "";
@@ -169,28 +168,6 @@ export default function Produk() {
     setCurrentPage(1);
   };
 
-  const handleDetailSearch = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-
-    if (!selectedProduct || !selectedProduct.stokBatch) return;
-
-    if (term.trim() === "") {
-      setFilteredDetail(selectedProduct.stokBatch);
-    } else {
-      const filtered = selectedProduct.stokBatch.filter((item) => {
-        if (!item.tanggalExp) return false;
-        const expDate = new Date(item.tanggalExp).toLocaleDateString("id-ID", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
-        return expDate.toLowerCase().includes(term.toLowerCase());
-      });
-      setFilteredDetail(filtered);
-    }
-  };
-
   const openProductDetail = (product) => {
     if (product && Array.isArray(product.stokBatch)) {
       // Hanya ambil batch yang masih punya sisaStok > 0
@@ -203,7 +180,6 @@ export default function Produk() {
   const closeProductDetail = () => {
     setSelectedProduct(null);
     setFilteredDetail([]);
-    setSearchTerm("");
   };
 
   // Get current products for pagination
@@ -339,20 +315,7 @@ export default function Produk() {
             {/* Modal Content */}
             <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-y-auto z-10 relative">
               {/* Modal Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pt-4 px-4">
-                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4">
-                  <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
-                    <IoIosSearch className="text-white" />
-                    <input
-                      type="text"
-                      placeholder="Cari"
-                      className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
-                      value={searchTerm}
-                      onChange={handleDetailSearch}
-                    />
-                  </div>
-                  <Filter />
-                </div>
+              <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-2 mb-4 pt-4 px-4">
                 <button
                   onClick={closeProductDetail}
                   className="text-gray-400 hover:text-gray-500 self-end sm:self-auto"
