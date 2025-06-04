@@ -93,11 +93,12 @@ export default function Login() {
               <div>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="E-mail"
                   className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg bg-gray-200"
                   error={errors.email?.message}
-                  {...register("email")}
+                  register={register}
                 />
               </div>
 
@@ -105,11 +106,12 @@ export default function Login() {
               <div className="relative">
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Kata Sandi"
                   className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg bg-gray-200"
                   error={errors.password?.message}
-                  {...register("password")}
+                  register={register}
                 />
                 {showPassword ? (
                   <IoEyeOffOutline

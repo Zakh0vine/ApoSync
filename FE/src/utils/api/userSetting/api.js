@@ -54,13 +54,3 @@ export const updateUser = async (data) => {
     throw Error(error.response.data.message);
   }
 };
-
-export const deleteUser = async (id) => {
-  try {
-    const response = await axiosWithConfig.delete("/users/${id}" + id);
-
-    return response.data;
-  } catch (error) {
-    throw Error(error.response.data.message);
-  }
-};
