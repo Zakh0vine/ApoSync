@@ -173,19 +173,6 @@ export default function PharmacyReport() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Sisa Produk</h3>
 
-<<<<<<< HEAD
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
-              <IoIosSearch className="text-white" />
-              <input
-                type="text"
-                placeholder="Cari nama/merk/kode"
-                value={searchPersediaan}
-                onChange={handleSearchPers}
-                className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
-              />
-            </div>
-=======
           <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
             <IoIosSearch className="text-white" />
             <input
@@ -195,7 +182,6 @@ export default function PharmacyReport() {
               onChange={handleSearchPers}
               className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
             />
->>>>>>> 6f8e24fffb007ecec6fda343b8efb2b2628ac2e0
           </div>
         </div>
 
@@ -258,19 +244,6 @@ export default function PharmacyReport() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Laba Keuntungan (30 hari)</h3>
 
-<<<<<<< HEAD
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
-              <IoIosSearch className="text-white" />
-              <input
-                type="text"
-                placeholder="Cari nama/merk"
-                value={searchLaba}
-                onChange={handleSearchLaba}
-                className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
-              />
-            </div>
-=======
           <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
             <IoIosSearch className="text-white" />
             <input
@@ -280,7 +253,6 @@ export default function PharmacyReport() {
               onChange={handleSearchLaba}
               className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
             />
->>>>>>> 6f8e24fffb007ecec6fda343b8efb2b2628ac2e0
           </div>
         </div>
 
