@@ -14,7 +14,8 @@ axiosWithConfig.interceptors.request.use((config) => {
   }
 
   config.baseURL =
-    import.meta.env.VITE_APP_API_URL || "http://www.dianbratamedika.com/api/v1";
+    import.meta.env.VITE_APP_API_URL ||
+    "https://www.dianbratamedika.com/api/v1";
   return config;
 });
 

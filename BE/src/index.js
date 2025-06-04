@@ -22,8 +22,8 @@ const PORT = process.env.PORT || 5000;
 //const CLIENT_URL = process.env.CLIENT_URL || "http://www.dianbratamedika.com";
 
 const allowedOrigins = [
-  "http://dianbratamedika.com",
-  "http://www.dianbratamedika.com",
+  "https://dianbratamedika.com",
+  "https://www.dianbratamedika.com",
 ];
 
 app.use(
