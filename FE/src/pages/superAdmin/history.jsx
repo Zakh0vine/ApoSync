@@ -3,12 +3,12 @@ import { IoIosSearch, IoIosWarning } from "react-icons/io";
 import { useSearchParams } from "react-router-dom";
 import { debounce } from "lodash";
 
-import Layout from "@/components/Layout";
-import Breadcrumb from "@/components/Breadcrumb";
+import Layout from "@/components/layout";
+import Breadcrumb from "@/components/breadcrumb";
 import Filter from "@/components/filterhistory";
-import Pagination from "@/components/Pagination";
+import Pagination from "@/components/pagination";
 import { getHistory } from "@/utils/api/history/api";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function History() {

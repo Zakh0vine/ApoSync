@@ -6,11 +6,11 @@ import { Pagination, Autoplay } from "swiper/modules";
 import KonsulDokter from "@/assets/apotek/konsulDokter.png";
 import KonsulApoteker from "@/assets/apotek/konsulApoteker.png";
 import ObatBebas from "@/assets/apotek/obatBebas.png";
-import ResepDokter from "@/assets/apotek/ResepDokter.png";
+import ResepDokter from "@/assets/apotek/resepDokter.png";
 import Alkes from "@/assets/apotek/alkes.png";
 
 import IconDokter from "@/assets/apotek/iconDokter.png";
-import IconApoteker from "@/assets/apotek/IconApoteker.png";
+import IconApoteker from "@/assets/apotek/iconApoteker.png";
 import IconObat from "@/assets/apotek/iconObat.png";
 import IconResep from "@/assets/apotek/iconResep.png";
 import IconAlkes from "@/assets/apotek/iconAlkes.png";

@@ -8,7 +8,7 @@ import Footer from "@/components/landingPage/footer";
 
 import Logo from "@/assets/logo2.png";
 import BgTentang from "@/assets/tentang.png";
-import Hero from "@/assets/Hero.png";
+import Hero from "@/assets/hero.png";
 
 export default function LandingPage() {
   return (

@@ -4,8 +4,8 @@ import { debounce } from "lodash";
 
 import Working from "@/assets/working.png";
 import Pharmacy from "@/assets/pharmacy.png";
-import { Loader } from "@/components/Loader";
-import Layout from "@/components/Layout";
+import { Loader } from "@/components/loader";
+import Layout from "@/components/layout";
 import { useToast } from "@/utils/toastify/toastProvider";
 import { getDailySummary } from "@/utils/api/dashboard/api";
 import { formatNumber } from "@/utils/formatter/formatNumber";

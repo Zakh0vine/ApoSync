@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Unggulan from "@/assets/layanan/Unggulan.png";
+import Unggulan from "@/assets/layanan/unggulan.png";
 import bgUnggulan from "@/assets/layanan/bgUnggulan.png";
 
 const data = {

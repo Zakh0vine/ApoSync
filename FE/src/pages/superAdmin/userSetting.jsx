@@ -7,7 +7,7 @@ import { debounce } from "lodash";
 import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/button";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout";
 import Pagination from "@/components/pagination";
 import Modal from "@/components/modal";
 import Breadcrumb from "@/components/breadcrumb";

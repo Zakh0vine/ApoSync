@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { debounce } from "lodash";
 
 import reportImage from "@/assets/report.png";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout";
 import { Button } from "@/components/button";
 import Pagination from "@/components/pagination";
 import {
