@@ -5,6 +5,7 @@ import { TiPlusOutline } from "react-icons/ti";
 import { TbEdit } from "react-icons/tb";
 import { GoTrash } from "react-icons/go";
 import { IoIosSearch, IoMdClose, IoIosWarning } from "react-icons/io";
+import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/button";
 import Layout from "@/components/Layout";
@@ -17,20 +18,29 @@ import { useToast } from "@/utils/toastify/toastProvider";
 import Delete from "@/utils/sweetalert/delete";
 import Edit from "@/utils/sweetalert/edit";
 import { formatNumber } from "@/utils/formatter/formatNumber";
+import { useDebouncedValue } from "@/utils/hooks/useDebouncedValue";
 
 export default function Produk() {
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filteredDetail, setFilteredDetail] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [productSearch, setProductSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("filter") || "";
+  const initialPage = parseInt(searchParams.get("page") || "1", 10);
+
+  const [productSearch, setProductSearch] = useState(initialSearch);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [itemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
+
+  const debouncedSearch = useDebouncedValue(productSearch, 500);
 
   useEffect(() => {
     const delayedFetchData = debounce(fetchData, 800);
@@ -96,8 +106,6 @@ export default function Produk() {
       });
 
       if (result.isConfirmed) {
-        // setIsLoading(true);
-        // navigate(`/produk-keluar`);
         setIsLoading(true);
         navigate(`/produk-keluar/${id}`);
       }
@@ -117,11 +125,7 @@ export default function Produk() {
     }
   }
 
-  // Product search handler
-  const handleProductSearch = (e) => {
-    const term = e.target.value;
-    setProductSearch(term);
-
+  useEffect(() => {
     let filtered = products;
 
     if (selectedCategory) {
@@ -130,40 +134,38 @@ export default function Produk() {
       );
     }
 
-    if (term.trim() !== "") {
+    if (debouncedSearch.trim() !== "") {
       filtered = filtered.filter(
         (product) =>
-          product.nama.toLowerCase().includes(term.toLowerCase()) ||
-          product.merk.toLowerCase().includes(term.toLowerCase()) ||
-          product.kodeProduk.toLowerCase().includes(term.toLowerCase())
+          product.nama.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          product.merk.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          product.kodeProduk
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase())
       );
     }
 
     setFilteredProducts(filtered);
     setCurrentPage(1);
+  }, [debouncedSearch, selectedCategory, products]);
+
+  useEffect(() => {
+    const params = {};
+
+    if (debouncedSearch.trim()) params.search = debouncedSearch;
+    if (selectedCategory) params.category = selectedCategory;
+    if (currentPage > 1) params.page = currentPage;
+
+    setSearchParams(params);
+  }, [debouncedSearch, selectedCategory, currentPage]);
+
+  const handleProductSearch = (e) => {
+    setProductSearch(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleFilterCategory = (category) => {
     setSelectedCategory(category);
-
-    let filtered = products;
-
-    // Jika kategori dipilih (bukan null), filter berdasarkan kategori
-    if (category) {
-      filtered = filtered.filter((product) => product.kategori === category);
-    }
-
-    // Terapkan filter pencarian jika ada
-    if (productSearch.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(productSearch.toLowerCase()) ||
-          product.merk.toLowerCase().includes(productSearch.toLowerCase()) ||
-          product.kodeProduk.toLowerCase().includes(productSearch.toLowerCase())
-      );
-    }
-
-    setFilteredProducts(filtered);
     setCurrentPage(1);
   };
 

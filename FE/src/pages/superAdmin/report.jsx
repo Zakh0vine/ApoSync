@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
+import { useSearchParams } from "react-router-dom";
+import { debounce } from "lodash";
 
 import reportImage from "@/assets/report.png";
 import Layout from "@/components/Layout";
@@ -15,6 +17,7 @@ import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function PharmacyReport() {
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // → State untuk Persediaan
   const [persediaan, setPersediaan] = useState([]);
@@ -32,8 +35,30 @@ export default function PharmacyReport() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllReports();
+    const persSearch = searchParams.get("searchPers") || "";
+    const labaSearch = searchParams.get("searchLaba") || "";
+    setSearchPersediaan(persSearch);
+    setSearchLaba(labaSearch);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const delayedFetchData = debounce(fetchAllReports, 800);
+    delayedFetchData();
+
+    return () => delayedFetchData.cancel();
   }, []);
+
+  useEffect(() => {
+    const persSearch = searchParams.get("searchPers") || "";
+    const labaSearch = searchParams.get("searchLaba") || "";
+
+    setSearchPersediaan(persSearch);
+    setSearchLaba(labaSearch);
+
+    // pencarian langsung hanya saat inisialisasi dari URL
+    searchPersediaanData(persSearch);
+    searchLabaData(labaSearch);
+  }, [searchParams, persediaan, laba]);
 
   async function fetchAllReports() {
     try {
@@ -66,21 +91,42 @@ export default function PharmacyReport() {
     }
   }
 
-  const handleSearchPers = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchPersediaan(term);
+  const searchPersediaanData = (term) => {
+    const keyword = term.toLowerCase().trim();
 
-    let temp = persediaan;
-    if (term !== "") {
-      temp = temp.filter(
+    if (!keyword) {
+      setFilteredPersediaan(persediaan);
+    } else {
+      const result = persediaan.filter(
         (item) =>
-          item.namaProduk.toLowerCase().includes(term) ||
-          item.merekProduk.toLowerCase().includes(term) ||
-          item.kodeProduk.toLowerCase().includes(term)
+          item.namaProduk.toLowerCase().includes(keyword) ||
+          item.merekProduk.toLowerCase().includes(keyword) ||
+          item.kodeProduk.toLowerCase().includes(keyword)
       );
+      setFilteredPersediaan(result);
     }
-    setFilteredPersediaan(temp);
+
     setCurrentPagePers(1);
+  };
+
+  const debouncedSearchPers = useMemo(
+    () =>
+      debounce((term) => {
+        searchPersediaanData(term);
+        setSearchParams((prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (term.trim()) newParams.set("searchPers", term);
+          else newParams.delete("searchPers");
+          return newParams;
+        });
+      }, 500),
+    [persediaan, setSearchParams]
+  );
+
+  const handleSearchPers = (e) => {
+    const term = e.target.value;
+    setSearchPersediaan(term);
+    debouncedSearchPers(term);
   };
 
   // Pagination Persediaan
@@ -89,20 +135,41 @@ export default function PharmacyReport() {
   const currentPersediaan = filteredPersediaan.slice(idxFirstPers, idxLastPers);
   const handlePageChangePers = (page) => setCurrentPagePers(page);
 
-  const handleSearchLaba = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchLaba(term);
+  const searchLabaData = (term) => {
+    const keyword = term.toLowerCase().trim();
 
-    let temp = laba;
-    if (term !== "") {
-      temp = temp.filter(
+    if (!keyword) {
+      setFilteredLaba(laba);
+    } else {
+      const result = laba.filter(
         (item) =>
-          item.namaProduk.toLowerCase().includes(term) ||
-          item.merekProduk.toLowerCase().includes(term)
+          item.namaProduk.toLowerCase().includes(keyword) ||
+          item.merekProduk.toLowerCase().includes(keyword)
       );
+      setFilteredLaba(result);
     }
-    setFilteredLaba(temp);
+
     setCurrentPageLaba(1);
+  };
+
+  const debouncedSearchLaba = useMemo(
+    () =>
+      debounce((term) => {
+        searchLabaData(term);
+        setSearchParams((prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (term.trim()) newParams.set("searchLaba", term);
+          else newParams.delete("searchLaba");
+          return newParams;
+        });
+      }, 500),
+    [laba, setSearchParams]
+  );
+
+  const handleSearchLaba = (e) => {
+    const term = e.target.value;
+    setSearchLaba(term);
+    debouncedSearchLaba(term);
   };
 
   // Pagination Laba
@@ -110,6 +177,13 @@ export default function PharmacyReport() {
   const idxFirstLaba = idxLastLaba - itemsPerPage;
   const currentLaba = filteredLaba.slice(idxFirstLaba, idxLastLaba);
   const handlePageChangeLaba = (page) => setCurrentPageLaba(page);
+
+  useEffect(() => {
+    return () => {
+      debouncedSearchPers.cancel();
+      debouncedSearchLaba.cancel();
+    };
+  }, [debouncedSearchPers, debouncedSearchLaba]);
 
   // Handler untuk tombol Download PDF
   const onClickDownload = async () => {

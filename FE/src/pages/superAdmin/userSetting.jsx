@@ -11,12 +11,11 @@ import Layout from "@/components/Layout";
 import Pagination from "@/components/pagination";
 import Modal from "@/components/modal";
 import Breadcrumb from "@/components/breadcrumb";
-import { getUser, deleteUser, toggleUser } from "@/utils/api/userSetting/api";
+import { getUser, toggleUser } from "@/utils/api/userSetting/api";
 import { Loader } from "@/components/loader";
 import { useToast } from "@/utils/toastify/toastProvider";
 import Status from "@/utils/sweetalert/status";
 import StaffModal from "@/pages/superAdmin/user/userModal";
-import Delete from "@/utils/sweetalert/delete";
 
 export default function UserSetting() {
   const toast = useToast();
@@ -32,27 +31,32 @@ export default function UserSetting() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const keywordFromURL = searchParams.get("search") || "";
-    setUserSearch(keywordFromURL);
-    fetchData(keywordFromURL);
+    const query = searchParams.get("search") || "";
+    setUserSearch(query);
   }, [searchParams]);
 
-  async function fetchData(searchTerm = "") {
+  useEffect(() => {
+    const delayedFetchData = debounce(fetchData, 800);
+    delayedFetchData();
+
+    return () => delayedFetchData.cancel();
+  }, []);
+
+  useEffect(() => {
+    if (user.length > 0) {
+      const query = searchParams.get("search") || "";
+      searchUsers(query, user);
+    }
+  }, [user, searchParams]);
+
+  async function fetchData() {
     try {
       setIsLoading(true);
       const result = await getUser();
-      const sortedUsers = result.sort((userA, userB) => {
-        const dateA = new Date(userA.createdAt);
-        const dateB = new Date(userB.createdAt);
-        return dateA - dateB;
-      });
+      const sortedUsers = result.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
       setUser(sortedUsers);
-
-      if (searchTerm.trim()) {
-        searchUsers(searchTerm, sortedUsers);
-      } else {
-        setFilteredUser(sortedUsers);
-      }
     } catch (error) {
       toast.addToast({
         variant: "destructive",
@@ -129,75 +133,33 @@ export default function UserSetting() {
     }
   };
 
-  async function onClickDelete(id) {
-    try {
-      const result = await Delete({
-        title: "Hapus Pengguna!",
-        text: "Pengguna yang terhapus tidak dapat dipulihkan!",
-      });
-
-      if (result.isConfirmed) {
-        setIsLoading(true);
-        await deleteUser(id);
-        toast.addToast({
-          variant: "deleted",
-          title: (
-            <div className="flex items-center">
-              <FaRegCheckCircle className="size-5" />
-              <span className="ml-2">Berhasil Menghapus Pengguna</span>
-            </div>
-          ),
-          description: (
-            <span className="ml-7">
-              Pengguna yang dihapus tidak dapat dipulihkan!
-            </span>
-          ),
-        });
-        fetchData();
-      }
-    } catch (error) {
-      toast.addToast({
-        variant: "destructive",
-        title: (
-          <div className="flex items-center">
-            <IoIosWarning className="size-5" />
-            <span className="ml-2">Gagal Menghapus Pengguna!</span>
-          </div>
-        ),
-        description: <span className="ml-7">Data pengguna gagal dihapus!</span>,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const handleUserSearch = (e) => {
-    const term = e.target.value;
-    setUserSearch(term);
-
-    if (term.trim() === "") {
-      setSearchParams({});
-      fetchData();
-    } else {
-      setSearchParams({ search: term });
-      debouncedSearch(term);
-    }
-  };
-
   const searchUsers = (searchTerm, userData = user) => {
-    const keyword = searchTerm.toLowerCase();
+    if (!userData || userData.length === 0) return;
 
-    const result = userData.filter((userItem) =>
-      [userItem.name, userItem.role, userItem.email].some((field) =>
-        (field || "").toLowerCase().includes(keyword)
-      )
-    );
+    const keyword = searchTerm.toLowerCase().trim();
 
-    setFilteredUser(result);
+    if (!keyword) {
+      setFilteredUser(userData);
+    } else {
+      const result = userData.filter((userItem) =>
+        [userItem.name, userItem.role, userItem.email].some((field) =>
+          (field || "").toLowerCase().includes(keyword)
+        )
+      );
+      setFilteredUser(result);
+    }
+
     setCurrentPage(1);
   };
 
-  const debouncedSearch = useMemo(() => debounce(searchUsers, 800), [user]);
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((searchTerm) => {
+        searchUsers(searchTerm);
+        setSearchParams(searchTerm.trim() ? { search: searchTerm } : {});
+      }, 500),
+    [user, setSearchParams]
+  );
 
   useEffect(() => {
     return () => {
@@ -205,9 +167,11 @@ export default function UserSetting() {
     };
   }, [debouncedSearch]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItem = filteredUser.slice(indexOfFirstItem, indexOfLastItem);
+  const handleUserSearch = (e) => {
+    const term = e.target.value;
+    setUserSearch(term);
+    debouncedSearch(term);
+  };
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
@@ -229,6 +193,10 @@ export default function UserSetting() {
     setIsModalOpen(false);
     setCurrentUser(null);
   };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItem = filteredUser.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <Layout>

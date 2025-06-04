@@ -1,7 +1,8 @@
-// FE/src/pages/History.jsx
-
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
+import { useSearchParams } from "react-router-dom";
+import { debounce } from "lodash";
+
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Filter from "@/components/filterhistory";
@@ -12,6 +13,8 @@ import { useToast } from "@/utils/toastify/toastProvider";
 
 export default function History() {
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,9 +23,29 @@ export default function History() {
   const [itemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ambil parameter dari URL saat pertama kali
   useEffect(() => {
-    fetchData();
+    const search = searchParams.get("search") || "";
+    const category = searchParams.get("category") || "";
+
+    setSearchTerm(search);
+    setSelectedCategory(category);
+    setDebouncedSearchTerm(search);
+  }, [searchParams]);
+
+  // Fetch data pertama kali
+  useEffect(() => {
+    const delayedFetchData = debounce(fetchData, 800);
+    delayedFetchData();
+
+    return () => delayedFetchData.cancel();
   }, []);
+
+  useEffect(() => {
+    if (history.length > 0) {
+      applyFilters(debouncedSearchTerm, selectedCategory);
+    }
+  }, [history, debouncedSearchTerm, selectedCategory]);
 
   async function fetchData() {
     try {
@@ -46,36 +69,7 @@ export default function History() {
     }
   }
 
-  // Fungsi pencarian
-  const handleSearch = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-
-    let temp = history;
-
-    // Filter berdasarkan kategori (subStatus) jika ada
-    if (selectedCategory) {
-      temp = temp.filter((item) => item.status === selectedCategory);
-    }
-
-    // Filter berdasarkan kata kunci di namaProduk, merkProduk, atau kodeProduk
-    if (term.trim() !== "") {
-      temp = temp.filter(
-        (item) =>
-          item.namaProduk.toLowerCase().includes(term.toLowerCase()) ||
-          item.merkProduk.toLowerCase().includes(term.toLowerCase()) ||
-          item.kodeProduk.toLowerCase().includes(term.toLowerCase())
-      );
-    }
-
-    setFilteredHistory(temp);
-    setCurrentPage(1);
-  };
-
-  // Fungsi filter kategori (status)
-  const handleFilterCategory = (category) => {
-    setSelectedCategory(category);
-
+  const applyFilters = (term, category) => {
     let temp = history;
 
     if (category) {
@@ -86,17 +80,56 @@ export default function History() {
       }
     }
 
-    if (searchTerm.trim() !== "") {
+    if (term.trim()) {
+      const keyword = term.toLowerCase();
       temp = temp.filter(
         (item) =>
-          item.namaProduk.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.merkProduk.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.kodeProduk.toLowerCase().includes(searchTerm.toLowerCase())
+          item.namaProduk.toLowerCase().includes(keyword) ||
+          item.merkProduk.toLowerCase().includes(keyword) ||
+          item.kodeProduk.toLowerCase().includes(keyword)
       );
     }
 
     setFilteredHistory(temp);
     setCurrentPage(1);
+  };
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((term) => {
+        setDebouncedSearchTerm(term);
+        setSearchParams((prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (term.trim()) newParams.set("search", term);
+          else newParams.delete("search");
+          return newParams;
+        });
+      }, 500),
+    [setSearchParams]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  // Fungsi pencarian
+  const handleSearch = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    debouncedSearch(term);
+  };
+
+  const handleFilterCategory = (category) => {
+    setSelectedCategory(category);
+
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      if (category) newParams.set("category", category);
+      else newParams.delete("category");
+      return newParams;
+    });
   };
 
   // Pagination
