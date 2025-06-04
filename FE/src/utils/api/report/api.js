@@ -1,5 +1,3 @@
-// FE/src/utils/api/report/api.js
-
 import axiosWithConfig from "../axiosWithConfig";
 
 export const getReportPersediaan = async () => {
@@ -13,5 +11,9 @@ export const getReportLaba = async () => {
 };
 
 export const downloadReportPDF = async () => {
-  const response = await axiosWithConfig.get("/laporan/download-pdf");
+  // Tambahkan opsi responseType:'blob' agar Axios mengembalikan data sebagai Blob
+  const response = await axiosWithConfig.get("/laporan/download-pdf", {
+    responseType: "blob",
+  });
+  return response.data; // ini akan berupa Blob PDF
 };

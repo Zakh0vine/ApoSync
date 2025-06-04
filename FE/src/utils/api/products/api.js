@@ -71,13 +71,3 @@ export const updateProduct = async (data) => {
     throw Error(error.response.data.message);
   }
 };
-
-export const deleteProduct = async (id) => {
-  try {
-    const response = await axiosWithConfig.delete("/api/products/product" + id);
-
-    return response.data;
-  } catch (error) {
-    throw Error(error.response.data.message);
-  }
-};

@@ -195,9 +195,8 @@ export default function History() {
                           })}
                         </td>
                         <td className="px-4 py-2">
-                          {new Date(item.tanggal).toLocaleString("id-ID", {
+                          {new Date(item.tanggal).toLocaleDateString("id-ID", {
                             dateStyle: "medium",
-                            timeStyle: "short",
                           })}
                         </td>
                         <td className="px-4 py-2">

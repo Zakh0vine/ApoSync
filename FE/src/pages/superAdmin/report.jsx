@@ -1,5 +1,3 @@
-// FE/src/pages/Report.jsx
-
 import { useEffect, useState } from "react";
 import { IoIosSearch, IoIosWarning } from "react-icons/io";
 
@@ -113,6 +111,38 @@ export default function PharmacyReport() {
   const currentLaba = filteredLaba.slice(idxFirstLaba, idxLastLaba);
   const handlePageChangeLaba = (page) => setCurrentPageLaba(page);
 
+  // Handler untuk tombol Download PDF
+  const onClickDownload = async () => {
+    try {
+      // Panggil API, terima Blob
+      const pdfBlob = await downloadReportPDF();
+
+      // Buat object URL dan buat elemen <a> untuk mendownload
+      const url = window.URL.createObjectURL(
+        new Blob([pdfBlob], { type: "application/pdf" })
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "laporan.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      // Jika terjadi error (401, 500, dsb), tampilkan toast
+      toast.addToast({
+        variant: "destructive",
+        title: (
+          <div className="flex items-center">
+            <IoIosWarning className="text-xl text-red-600" />
+            <span className="ml-2">Gagal Download PDF Laporan</span>
+          </div>
+        ),
+        description: <span className="ml-7">Cek koneksi atau server.</span>,
+      });
+    }
+  };
+
   return (
     <Layout>
       <div className="p-4 md:p-6 pb-6 md:pb-10 md:pt-10 mt-14 rounded-lg w-full mb-4 md:mb-6 text-center">
@@ -131,34 +161,19 @@ export default function PharmacyReport() {
         <div className="flex justify-center mb-3 md:mb-4">
           <Button
             className="bg-[#23B000] hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-            onClick={async () => {
-              try {
-                await downloadReportPDF();
-              } catch (err) {
-                toast.addToast({
-                  variant: "destructive",
-                  title: (
-                    <div className="flex items-center">
-                      <IoIosWarning className="text-xl text-red-600" />
-                      <span className="ml-2">Gagal Download PDF Laporan</span>
-                    </div>
-                  ),
-                  description: (
-                    <span className="ml-7">Cek koneksi atau server.</span>
-                  ),
-                });
-              }
-            }}
+            onClick={onClickDownload}
           >
             Download PDF Laporan
           </Button>
         </div>
       </div>
 
+      {/* Bagian Tabel Persediaan */}
       <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Sisa Produk</h3>
 
+<<<<<<< HEAD
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
               <IoIosSearch className="text-white" />
@@ -170,6 +185,17 @@ export default function PharmacyReport() {
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
+=======
+          <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
+            <IoIosSearch className="text-white" />
+            <input
+              type="text"
+              placeholder="Cari nama/merk/kode"
+              value={searchPersediaan}
+              onChange={handleSearchPers}
+              className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
+            />
+>>>>>>> 6f8e24fffb007ecec6fda343b8efb2b2628ac2e0
           </div>
         </div>
 
@@ -221,15 +247,18 @@ export default function PharmacyReport() {
             totalItems={filteredPersediaan.length}
             itemsPerPage={itemsPerPage}
             currentPage={currentPagePers}
+            setCurrentPage={setCurrentPagePers}
             onPageChange={handlePageChangePers}
           />
         </div>
       </div>
 
+      {/* Bagian Tabel Laba Keuntungan */}
       <div className="bg-white p-4 md:p-6 md:pt-10 rounded-lg shadow-md w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
           <h3 className="text-xl font-semibold">Laba Keuntungan (30 hari)</h3>
 
+<<<<<<< HEAD
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
               <IoIosSearch className="text-white" />
@@ -241,6 +270,17 @@ export default function PharmacyReport() {
                 className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
               />
             </div>
+=======
+          <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
+            <IoIosSearch className="text-white" />
+            <input
+              type="text"
+              placeholder="Cari nama/merk"
+              value={searchLaba}
+              onChange={handleSearchLaba}
+              className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
+            />
+>>>>>>> 6f8e24fffb007ecec6fda343b8efb2b2628ac2e0
           </div>
         </div>
 
@@ -294,6 +334,7 @@ export default function PharmacyReport() {
             totalItems={filteredLaba.length}
             itemsPerPage={itemsPerPage}
             currentPage={currentPageLaba}
+            setCurrentPage={setCurrentPageLaba}
             onPageChange={handlePageChangeLaba}
           />
         </div>

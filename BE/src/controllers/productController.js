@@ -26,18 +26,18 @@ export const createProduk = async (req, res) => {
   }
 
   try {
+    // Hitung hargaModal beserta PPN jika belum termasuk
     let hargaModalPPN = parseFloat(hargaModal);
-
-    // Hitung PPN jika belum termasuk
     if (!sudahTermasukPPN) {
       hargaModalPPN *= 1.11;
     }
-    // Bulatkan hargaModalPPN ke integer terdekat
     hargaModalPPN = Math.round(hargaModalPPN);
-    // Hitung harga jual (markup 25%) dan pembulatan ribuan
+
+    // Hitung hargaJual (markup 25%) + pembulatan ke kelipatan 500
     let hargaJual = hargaModalPPN * 1.25;
     hargaJual = Math.round(hargaJual / 500) * 500;
 
+    // Cobalah create produk baru
     const produkBaru = await prisma.produk.create({
       data: {
         nama,
@@ -46,7 +46,7 @@ export const createProduk = async (req, res) => {
         kategori,
         hargaModal: hargaModalPPN,
         hargaJual,
-        stok: 0, // Default 0 saat awal
+        stok: 0,
       },
     });
 
@@ -55,6 +55,25 @@ export const createProduk = async (req, res) => {
       data: produkBaru,
     });
   } catch (error) {
+    // Jika kodeProduk sudah ada → unik constraint P2002
+    if (error.code === "P2002" && error.meta?.target?.includes("kodeProduk")) {
+      // Ambil produk yang sudah ada, lalu kembalikan sebagai 200 OK
+      try {
+        const existing = await prisma.produk.findUnique({
+          where: { kodeProduk },
+        });
+        return res.status(200).json({
+          message: "Produk sudah ada",
+          data: existing,
+        });
+      } catch (fetchErr) {
+        console.error("Fetch existing produk after P2002 failed:", fetchErr);
+        return res.status(500).json({
+          message: "Gagal mengambil data produk yang sudah ada.",
+        });
+      }
+    }
+
     console.error("Create produk error:", error);
     return res.status(500).json({ message: "Gagal menambahkan produk." });
   }

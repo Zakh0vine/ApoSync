@@ -1,3 +1,5 @@
+// src/pages/superAdmin/user/userModal.jsx
+
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +29,13 @@ export default function UserModal({ userData, onClose, onSuccess }) {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(UserSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      role: "KARYAWAN",
+      password: "",
+      konfirmasi_password: "",
+    },
   });
 
   useEffect(() => {
@@ -35,17 +44,15 @@ export default function UserModal({ userData, onClose, onSuccess }) {
       setValue("name", userData.name);
       setValue("email", userData.email);
       setValue("role", userData.role);
+    } else {
+      reset();
+      setSelectedId(0);
     }
-  }, [userData, setValue]);
+  }, [userData, setValue, reset]);
 
   async function onSubmit(data) {
     try {
-      console.log("Form data before submit:", data);
-
-      const payload = {
-        ...data,
-        id: selectedId,
-      };
+      const payload = { ...data, id: selectedId };
 
       if (userData) {
         // Edit mode
@@ -115,57 +122,59 @@ export default function UserModal({ userData, onClose, onSuccess }) {
           </h1>
         </div>
 
-        {/* Form Fields */}
         <div className="w-full">
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-6"
           >
-            {/* First Name & Last Name */}
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <div className="flex flex-col w-full">
-                <Input
-                  id="name"
-                  name="name"
-                  label="Nama"
-                  type="text"
-                  error={errors.name?.message}
-                  register={register}
-                />
-              </div>
+            {/* Nama */}
+            <div className="flex flex-col w-full">
+              <Input
+                id="name"
+                type="text"
+                label="Nama"
+                placeholder="Masukkan nama"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
+                error={errors.name?.message}
+                {...register("name")}
+              />
             </div>
 
-            <div className="flex flex-col relative">
+            {/* Email */}
+            <div className="flex flex-col w-full">
               <Input
                 id="email"
-                name="email"
+                type="email"
                 label="Kontak"
-                type="text"
+                placeholder="Masukkan e-mail"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
                 error={errors.email?.message}
-                register={register}
+                {...register("email")}
               />
             </div>
 
-            <div className="flex flex-col relative">
+            {/* Role */}
+            <div className="flex flex-col w-full">
               <Select
                 id="role"
-                aria-label="role"
                 label="Role"
-                name="role"
-                options={["KARYAWAN"]}
-                register={register}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
+                options={["KARYAWAN", "SUPER_ADMIN"]}
                 error={errors.role?.message}
+                {...register("role")}
               />
             </div>
 
-            <div className="flex flex-col relative">
+            {/* Password */}
+            <div className="flex flex-col relative w-full">
               <Input
                 id="password"
-                name="password"
-                label="Kata Sandi"
                 type={showPassword ? "text" : "password"}
+                label="Kata Sandi"
+                placeholder="Masukkan kata sandi"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
                 error={errors.password?.message}
-                register={register}
+                {...register("password")}
               />
               {showPassword ? (
                 <IoEyeOffOutline
@@ -180,14 +189,16 @@ export default function UserModal({ userData, onClose, onSuccess }) {
               )}
             </div>
 
-            <div className="flex flex-col relative">
+            {/* Konfirmasi Password */}
+            <div className="flex flex-col relative w-full">
               <Input
                 id="konfirmasi_password"
-                name="konfirmasi_password"
-                label="Ulangi Kata Sandi"
                 type={showConfirmPassword ? "text" : "password"}
+                label="Ulangi Kata Sandi"
+                placeholder="Konfirmasi kata sandi"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
                 error={errors.konfirmasi_password?.message}
-                register={register}
+                {...register("konfirmasi_password")}
               />
               {showConfirmPassword ? (
                 <IoEyeOffOutline
@@ -202,7 +213,7 @@ export default function UserModal({ userData, onClose, onSuccess }) {
               )}
             </div>
 
-            {/* Buttons */}
+            {/* Tombol Batal & Simpan */}
             <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
               <Button
                 onClick={onClose}

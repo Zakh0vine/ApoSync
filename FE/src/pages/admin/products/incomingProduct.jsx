@@ -1,3 +1,5 @@
+// src/pages/incomingProduct.jsx
+
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,6 +19,7 @@ import {
   createProductIn,
   updateProduct,
   getProductId,
+  getProducts,
 } from "@/utils/api/products/api";
 import { useToast } from "@/utils/toastify/toastProvider";
 import { Loader } from "@/components/loader";
@@ -28,111 +31,229 @@ export default function IncomingProduct() {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(0);
+  const [isMasterExisting, setIsMasterExisting] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
 
   const {
     reset,
     setValue,
+    watch,
     register,
     handleSubmit,
     clearErrors,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(InComingSchema),
     defaultValues: {
+      nama: "",
+      merk: "",
+      kategori: "",
+      kodeProduk: "",
       hargaModal: 0,
       stok: 0,
       sudahTermasukPPN: false,
+      tanggalMasuk: "",
+      tanggalExp: "",
     },
   });
 
-  const sudahTermasukPPN = watch("sudahTermasukPPN");
+  const kodeProdukValue = watch("kodeProduk");
+  const isEditing = Boolean(id);
 
+  // Gunakan array string yang sama dengan enum backend
+  const kategoriOptions = ["OBAT_BEBAS", "OBAT_KERAS", "KONSI", "ALKES"];
+
+  // 1) Prefill saat edit (/produk-masuk/edit/:id)
   useEffect(() => {
-    if (id !== undefined) {
-      fetchData();
+    const fetchForEdit = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getProductId(id);
+        const produk = response.data.data;
+        setSelectedId(produk.id);
+
+        setValue("nama", produk.nama);
+        setValue("merk", produk.merk);
+        setValue("hargaModal", produk.hargaModal);
+        setValue("sudahTermasukPPN", true);
+        setValue("kodeProduk", produk.kodeProduk);
+
+        // Langsung set enum string
+        setValue("kategori", produk.kategori);
+        setIsMasterExisting(true);
+      } catch (error) {
+        toast.addToast({
+          variant: "destructive",
+          title: (
+            <div className="flex items-center">
+              <IoIosWarning className="size-5" />
+              <span className="ml-2">Gagal Mendapatkan Data</span>
+            </div>
+          ),
+          description: <span className="ml-7">{error.message}</span>,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isEditing) {
+      fetchForEdit();
     } else {
       setIsLoading(false);
+      setIsMasterExisting(false);
     }
-  }, [id]);
+  }, [id, isEditing, setValue, toast]);
 
-  async function fetchData() {
-    try {
-      setIsLoading(true);
-      const result = await getProductId(id);
+  // 2) Debounced cek keberadaan kodeProduk untuk auto‐prefill saat create
+  useEffect(() => {
+    if (isEditing) return;
 
-      if (result.data) {
-        const data = result.data;
-        setSelectedId(data.id);
-        setValue("nama", data.nama);
-        setValue("merk", data.merk);
-        setValue("hargaModal", data.hargaModal);
-        setValue("kodeProduk", data.kodeProduk);
+    const checkExistence = async () => {
+      if (!kodeProdukValue) {
+        setValue("nama", "");
+        setValue("merk", "");
+        setValue("hargaModal", 0);
+        setValue("kategori", "");
+        setValue("sudahTermasukPPN", false);
+        setIsMasterExisting(false);
+        return;
       }
-    } catch (error) {
-      toast.addToast({
-        variant: "destructive",
-        title: (
-          <div className="flex items-center">
-            <IoIosWarning className="size-5" />
-            <span className="ml-2">Gagal Mendapatkan Data</span>
-          </div>
-        ),
-        description: <span className="ml-7">{error.message}</span>,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
+      try {
+        setIsLoading(true);
+        const allRes = await getProducts();
+        const daftar = Array.isArray(allRes.data) ? allRes.data : allRes;
+        const found = daftar.find(
+          (p) => p.kodeProduk.toLowerCase() === kodeProdukValue.toLowerCase()
+        );
+        if (found) {
+          setValue("nama", found.nama);
+          setValue("merk", found.merk);
+          setValue("hargaModal", found.hargaModal);
+          setValue("kategori", found.kategori);
+          setValue("sudahTermasukPPN", true);
+          setIsMasterExisting(true);
+        } else {
+          setValue("nama", "");
+          setValue("merk", "");
+          setValue("hargaModal", 0);
+          setValue("kategori", "");
+          setValue("sudahTermasukPPN", false);
+          setIsMasterExisting(false);
+        }
+      } catch {
+        setValue("nama", "");
+        setValue("merk", "");
+        setValue("hargaModal", 0);
+        setValue("kategori", "");
+        setValue("sudahTermasukPPN", false);
+        setIsMasterExisting(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    const timeoutId = setTimeout(checkExistence, 500);
+    return () => clearTimeout(timeoutId);
+  }, [kodeProdukValue, isEditing, setValue]);
+
+  // 3) Handler submit untuk create atau edit
   async function onSubmit(data) {
     try {
       setIsLoading(true);
 
-      // Create master product first
-      const productData = {
-        nama: data.nama,
-        merk: data.merk,
-        kodeProduk: data.kodeProduk,
-        kategori: data.kategori,
-        hargaModal: data.hargaModal,
-        sudahTermasukPPN: data.sudahTermasukPPN,
-      };
-
-      await createProduct(productData);
-
-      // Then create batch if stok > 0
-      if (data.stok > 0) {
-        const batchData = {
+      if (isEditing) {
+        // Edit master produk
+        const updateData = {
+          id: selectedId,
+          nama: data.nama,
+          merk: data.merk,
           kodeProduk: data.kodeProduk,
-          jumlah: data.stok,
-          userId: user?.id || null,
-          tanggalMasuk: data.tanggalMasuk,
-          tanggalExp: data.tanggalExp,
+          kategori: data.kategori, // sudah "OBAT_BEBAS" / "OBAT_KERAS"
+          hargaModal: data.hargaModal,
+          sudahTermasukPPN: data.sudahTermasukPPN,
         };
+        await updateProduct(updateData);
 
-        await createProductIn(batchData);
+        toast.addToast({
+          variant: "edited",
+          title: (
+            <div className="flex items-center">
+              <FaRegCheckCircle className="size-5" />
+              <span className="ml-2">Data Telah Diedit</span>
+            </div>
+          ),
+          description: (
+            <span className="ml-7">
+              Data yang telah diedit dapat diedit kembali
+            </span>
+          ),
+        });
+        reset();
+        navigate("/produk");
+      } else {
+        // Create baru / tambahkan stok
+        let masterExists = false;
+        let existingProduk = null;
+        try {
+          const allRes = await getProducts();
+          const daftar = Array.isArray(allRes.data) ? allRes.data : allRes;
+          existingProduk = daftar.find(
+            (p) => p.kodeProduk.toLowerCase() === data.kodeProduk.toLowerCase()
+          );
+          masterExists = Boolean(existingProduk);
+        } catch {
+          masterExists = false;
+        }
+
+        if (!masterExists) {
+          const productData = {
+            nama: data.nama,
+            merk: data.merk,
+            kodeProduk: data.kodeProduk,
+            kategori: data.kategori, // tetap enum string
+            hargaModal: data.hargaModal,
+            sudahTermasukPPN: data.sudahTermasukPPN,
+          };
+          const createRes = await createProduct(productData);
+          existingProduk = createRes.data;
+        }
+
+        if (data.stok > 0) {
+          const batchData = {
+            kodeProduk: data.kodeProduk,
+            jumlah: data.stok,
+            userId: user?.id || null,
+            tanggalMasuk: data.tanggalMasuk,
+            tanggalExp: data.tanggalExp,
+          };
+          await createProductIn(batchData);
+        }
+
+        toast.addToast({
+          title: (
+            <div className="flex items-center">
+              <FaRegCheckCircle className="size-5" />
+              <span className="ml-2">Berhasil Menambahkan Produk</span>
+            </div>
+          ),
+          description: (
+            <span className="ml-7">Data produk berhasil ditambahkan!</span>
+          ),
+        });
+        reset();
       }
-      toast.addToast({
-        title: (
-          <div className="flex items-center">
-            <FaRegCheckCircle className="size-5" />
-            <span className="ml-2">Berhasil Menambahkan Produk</span>
-          </div>
-        ),
-        description: (
-          <span className="ml-7">Data produk berhasil ditambahkan!</span>
-        ),
-      });
-      reset();
     } catch (error) {
       toast.addToast({
         variant: "destructive",
         title: (
           <div className="flex items-center">
             <IoIosWarning className="size-5" />
-            <span className="ml-2">Gagal Menambahkan Produk</span>
+            <span className="ml-2">
+              {isEditing
+                ? "Gagal Memperbarui Produk"
+                : "Gagal Menambahkan Produk"}
+            </span>
           </div>
         ),
         description: <span className="ml-7">{error.message}</span>,
@@ -141,96 +262,36 @@ export default function IncomingProduct() {
       setIsLoading(false);
     }
   }
-
-  async function onSubmitEdit(data) {
-    try {
-      setIsLoading(true);
-
-      const updateData = {
-        id: selectedId,
-        nama: data.nama,
-        merk: data.merk,
-        kodeProduk: data.kodeProduk,
-        hargaModal: data.hargaModal,
-        sudahTermasukPPN: data.sudahTermasukPPN,
-      };
-      await updateProduct(updateData);
-
-      toast.addToast({
-        variant: "edited",
-        title: (
-          <div className="flex items-center">
-            <FaRegCheckCircle className="size-5" />
-            <span className="ml-2">Data Telah Diedit</span>
-          </div>
-        ),
-        description: (
-          <span className="ml-7">
-            Data yang telah diedit dapat diedit kembali
-          </span>
-        ),
-      });
-
-      reset();
-      navigate("/produk");
-    } catch (error) {
-      toast.addToast({
-        variant: "destructive",
-        title: (
-          <div className="flex items-center">
-            <IoIosWarning className="size-5" />
-            <span className="ml-2">Gagal Memperbarui Produk</span>
-          </div>
-        ),
-        description: <span className="ml-7">{error.message}</span>,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const isEditingProdukMasuk =
-    location.pathname.startsWith("/produk-masuk/edit");
-  const isMasukActive = location.pathname.startsWith("/produk-masuk");
-  const isKeluarActive = location.pathname.startsWith("/produk-keluar");
 
   return (
     <Layout>
       <div className="p-4 md:p-6 md:pt-10 mt-14 sm:pt-14">
-        <Breadcrumb pageName={selectedId === 0 ? "Input Stok" : "Edit Stok"} />
+        <Breadcrumb pageName={isEditing ? "Edit Produk" : "Input Stok"} />
 
-        {/* Tab */}
+        {/* Tab Navigasi */}
         <div className="flex flex-wrap gap-2 mb-6">
           <Button
             onClick={() => {
-              if (!isEditingProdukMasuk) {
-                navigate("/produk-masuk");
-              }
+              if (!isEditing) navigate("/produk-masuk");
             }}
             className={`px-4 py-2 rounded-md font-semibold ${
-              isMasukActive
+              location.pathname.startsWith("/produk-masuk")
                 ? "bg-[#6499E9] text-white hover:bg-blue-500"
                 : "bg-transparent border border-[#6499E9] !text-[#6499E9] hover:bg-transparent hover:text-[#6499E9] hover:border-[#6499E9]"
-            } ${isEditingProdukMasuk ? "opacity-50 cursor-not-allowed" : ""}`}
+            } ${isEditing ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {selectedId !== 0 ? "Edit Produk" : "Produk Masuk"}
+            {isEditing ? "Edit Produk" : "Produk Masuk"}
           </Button>
 
           <Button
             onClick={() => {
-              if (!isEditingProdukMasuk && selectedId === 0) {
-                navigate("/produk-keluar");
-              }
+              if (!isEditing) navigate("/produk-keluar");
             }}
             className={`px-4 py-2 rounded-md font-semibold ${
-              isKeluarActive
+              location.pathname.startsWith("/produk-keluar")
                 ? "bg-[#6499E9] text-white hover:bg-blue-500"
                 : "bg-transparent border border-[#6499E9] !text-[#6499E9] hover:bg-transparent hover:text-[#6499E9] hover:border-[#6499E9]"
-            } ${
-              isEditingProdukMasuk || selectedId !== 0
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-            }`}
+            } ${isEditing ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             Produk Keluar
           </Button>
@@ -242,64 +303,61 @@ export default function IncomingProduct() {
         ) : (
           <div className="border p-4 md:p-6 bg-white rounded-md">
             <form
-              onSubmit={handleSubmit(
-                selectedId === 0 ? onSubmit : onSubmitEdit
-              )}
+              onSubmit={handleSubmit(onSubmit)}
               className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
             >
               {/* Nama Produk */}
               <div className="flex flex-col">
                 <Input
                   id="nama"
-                  name="nama"
                   label="Nama Produk"
                   type="text"
                   error={errors.nama?.message}
-                  register={register}
+                  {...register("nama")}
                 />
               </div>
 
-              {/* harga */}
+              {/* Harga Modal */}
               <div className="flex flex-col">
                 <Input
                   id="hargaModal"
-                  name="hargaModal"
-                  label="Harga"
+                  label="Harga Modal"
                   type="number"
                   error={errors.hargaModal?.message}
-                  register={register}
+                  disabled={!isEditing && isMasterExisting}
+                  {...register("hargaModal", { valueAsNumber: true })}
                 />
                 <label className="mt-1 flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     className="w-4 h-4"
                     {...register("sudahTermasukPPN")}
+                    disabled={!isEditing && isMasterExisting}
                   />
                   Sudah termasuk PPN 11%
                 </label>
               </div>
 
-              {/* Merk */}
+              {/* Merk Produk */}
               <div className="flex flex-col">
                 <Input
                   id="merk"
-                  name="merk"
                   label="Merk"
                   type="text"
                   error={errors.merk?.message}
-                  register={register}
+                  {...register("merk")}
                 />
               </div>
 
               {/* Tanggal Masuk (hanya create) */}
-              {selectedId === 0 && (
+              {!isEditing && (
                 <div className="flex flex-col">
                   <DateInput
                     id="tanggalMasuk"
-                    name="tanggalMasuk"
                     label="Tanggal Masuk"
-                    onDateChange={(date) => setValue("tanggalMasuk", date)}
                     register={register}
+                    name="tanggalMasuk"
+                    onDateChange={(date) => setValue("tanggalMasuk", date)}
                     error={errors.tanggalMasuk?.message}
                     clearErrors={clearErrors}
                   />
@@ -307,34 +365,25 @@ export default function IncomingProduct() {
               )}
 
               {/* Kategori */}
-              {selectedId === 0 && (
-                <div className="flex flex-col">
-                  <Select
-                    id="kategori"
-                    aria-label="kategori"
-                    label="Kategori"
-                    name="kategori"
-                    options={[
-                      "OBAT_BEBAS_TERBATAS",
-                      "OBAT_KERAS",
-                      "KONSI",
-                      "ALKES",
-                    ]}
-                    register={register}
-                    error={errors.kategori?.message}
-                  />
-                </div>
-              )}
+              <div className="flex flex-col">
+                <Select
+                  id="kategori"
+                  label="Kategori"
+                  options={kategoriOptions}
+                  error={errors.kategori?.message}
+                  {...register("kategori")}
+                />
+              </div>
 
-              {/* Kadaluwarsa */}
-              {selectedId === 0 && (
+              {/* Kadaluwarsa (hanya create) */}
+              {!isEditing && (
                 <div className="flex flex-col">
                   <DateInput
                     id="tanggalExp"
-                    name="tanggalExp"
                     label="Kadaluarsa"
-                    onDateChange={(date) => setValue("tanggalExp", date)}
                     register={register}
+                    name="tanggalExp"
+                    onDateChange={(date) => setValue("tanggalExp", date)}
                     error={errors.tanggalExp?.message}
                     clearErrors={clearErrors}
                   />
@@ -345,29 +394,27 @@ export default function IncomingProduct() {
               <div className="flex flex-col">
                 <Input
                   id="kodeProduk"
-                  name="kodeProduk"
                   label="Kode Produk"
                   type="text"
                   error={errors.kodeProduk?.message}
-                  register={register}
+                  {...register("kodeProduk")}
                 />
               </div>
 
-              {/* Stok */}
-              {selectedId === 0 && (
+              {/* Stok (hanya create) */}
+              {!isEditing && (
                 <div className="flex flex-col">
                   <Input
                     id="stok"
-                    name="stok"
                     label="Stok per pcs"
                     type="number"
                     error={errors.stok?.message}
-                    register={register}
+                    {...register("stok", { valueAsNumber: true })}
                   />
                 </div>
               )}
 
-              {/* Tombol */}
+              {/* Tombol Batal & Simpan */}
               <div className="md:col-span-2 flex justify-end gap-4 mt-6">
                 <Button
                   onClick={() => navigate("/produk")}
@@ -384,10 +431,10 @@ export default function IncomingProduct() {
                 >
                   {isSubmitting ? (
                     <Loader size="sm" />
-                  ) : selectedId === 0 ? (
-                    "Simpan"
-                  ) : (
+                  ) : isEditing ? (
                     "Perbarui"
+                  ) : (
+                    "Simpan"
                   )}
                 </Button>
               </div>
