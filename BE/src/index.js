@@ -19,7 +19,7 @@ dotenv.config();
 // App setup
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || "http://dianbratamedika.com";
+const CLIENT_URL = process.env.CLIENT_URL || "http://www.dianbratamedika.com";
 
 // Middleware
 app.use(
