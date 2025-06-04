@@ -19,7 +19,7 @@ dotenv.config();
 // App setup
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || "http://www.dianbratamedika.com";
+const CLIENT_URL = process.env.CLIENT_URL || "http://dianbratamedika.com";
 
 // Middleware
 app.use(
@@ -30,6 +30,10 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.get("/ping", (req, res) => {
+  return res.status(200).json({ message: "pong" });
+});
 
 // Routes
 app.use("/api/v1/auth", authRoutes);
