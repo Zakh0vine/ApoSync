@@ -19,27 +19,36 @@ dotenv.config();
 // App setup
 const app = express();
 const PORT = process.env.PORT || 5000;
-//const CLIENT_URL = process.env.CLIENT_URL || "http://www.dianbratamedika.com";
+const CLIENT_URL = process.env.CLIENT_URL || "https://www.dianbratamedika.com";
 
-const allowedOrigins = [
-  "https://dianbratamedika.com",
-  "https://www.dianbratamedika.com",
-];
+// const allowedOrigins = [
+//   "https://dianbratamedika.com",
+//   "https://www.dianbratamedika.com",
+// ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // origin = null saat curl atau direct, biarkan juga
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS.`));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // origin = null saat curl atau direct, biarkan juga
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       }
+//       return callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS.`));
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//   })
+// );
+
+// Middleware to block requests from unauthorized hosts
+app.use((req, res, next) => {
+  const hostHeader = req.headers.host;
+  if (hostHeader !== "www.dianbratamedika.com") {
+    return res.status(403).json({ error: "Forbidden: Invalid host header" });
+  }
+  next();
+});
 
 // Middleware
 app.use(
