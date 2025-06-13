@@ -31,7 +31,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Mendapatkan user by ID (tanpa SUPER_ADMIN)
+// Mendapatkan user by ID (tanpa SUPER ADMIN)
 export const getUserById = async (req, res) => {
   const { id } = req.params;
 
@@ -212,9 +212,9 @@ export const createUser = async (req, res) => {
     });
   }
 
-  if (role === "SUPER_ADMIN") {
+  if (role === "SUPER ADMIN") {
     return res.status(403).json({
-      message: "Tidak diizinkan membuat akun dengan role SUPER_ADMIN",
+      message: "Tidak diizinkan membuat akun dengan role SUPER ADMIN",
     });
   }
 

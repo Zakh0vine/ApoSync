@@ -12,7 +12,7 @@ const { SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, SUPER_ADMIN_NAME } =
 async function main() {
   if (!SUPER_ADMIN_EMAIL || !SUPER_ADMIN_PASSWORD) {
     console.error(
-      "SUPER_ADMIN_EMAIL dan SUPER_ADMIN_PASSWORD harus diatur di file .env"
+      "SUPER ADMIN EMAIL dan SUPER ADMIN PASSWORD harus diatur di .env"
     );
     process.exit(1);
   }

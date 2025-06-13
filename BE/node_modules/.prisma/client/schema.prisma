@@ -9,12 +9,12 @@ generator client {
 
 enum UserRole {
   KARYAWAN
-  SUPER_ADMIN
+  SUPER_ADMIN @map("SUPER ADMIN")
 }
 
 enum KategoriProduk {
-  OBAT_BEBAS
-  OBAT_KERAS
+  OBAT_BEBAS @map("OBAT BEBAS")
+  OBAT_KERAS @map("OBAT KERAS")
   KONSI
   ALKES
 }
@@ -23,7 +23,7 @@ enum StatusKeluar {
   TERJUAL
   KADALUARSA
   RUSAK
-  TIDAK_SESUAI
+  TIDAK_SESUAI @map("TIDAK SESUAI")
 }
 
 model User {
@@ -46,9 +46,9 @@ model Produk {
   merk       String
   kodeProduk String         @unique
   kategori   KategoriProduk
-  hargaModal Float // default harga modal (rata-rata)
+  hargaModal Float
   hargaJual  Float
-  stok       Int            @default(0) // hasil agregasi dari stokBatch.sisaStok
+  stok       Int            @default(0)
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
@@ -73,7 +73,7 @@ model ProdukMasuk {
   userId       Int
   user         User      @relation("UserProdukMasuk", fields: [userId], references: [id])
   jumlah       Int
-  hargaModal   Float // Harga per unit sudah termasuk PPN jika dicentang
+  hargaModal   Float
   tanggalMasuk DateTime
   tanggalExp   DateTime?
 }
@@ -85,9 +85,9 @@ model ProdukKeluar {
   userId        Int
   user          User         @relation("UserProdukKeluar", fields: [userId], references: [id])
   jumlah        Int
-  hargaModal    Float // Harga modal per unit saat produk keluar (bisa dari batch FEFO)
-  hargaJual     Float // Harga jual per unit
-  keuntungan    Float // (hargaJual - hargaModal) * jumlah jika status = TERJUAL
+  hargaModal    Float
+  hargaJual     Float
+  keuntungan    Float
   status        StatusKeluar
   tanggalKeluar DateTime
 }

@@ -55,7 +55,7 @@ export const isSuperAdmin = (req, res, next) => {
   if (req.user.role !== "SUPER_ADMIN") {
     return res
       .status(403)
-      .json({ message: "Akses ditolak: hanya untuk SUPER_ADMIN" });
+      .json({ message: "Akses ditolak: hanya untuk SUPER ADMIN" });
   }
   next();
 };

@@ -13,9 +13,7 @@ axiosWithConfig.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  config.baseURL =
-    import.meta.env.VITE_APP_API_URL ||
-    "https://www.dianbratamedika.com/api/v1";
+  config.baseURL = import.meta.env.VITE_APP_API_URL;
   return config;
 });
 
