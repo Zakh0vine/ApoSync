@@ -23,13 +23,13 @@ const CLIENT_URL = process.env.CLIENT_URL;
 
 // Middleware to block requests from unauthorized hosts
 
-// app.use((req, res, next) => {
-//   const hostHeader = req.headers.host;
-//   if (hostHeader !== "www.dianbratamedika.com") {
-//     return res.status(403).json({ error: "Forbidden: Invalid host header" });
-//   }
-//   next();
-// });
+app.use((req, res, next) => {
+  const hostHeader = req.headers.host;
+  if (hostHeader !== "www.dianbratamedika.com") {
+    return res.status(403).json({ error: "Forbidden: Invalid host header" });
+  }
+  next();
+});
 
 // Middleware
 app.use(
@@ -63,5 +63,5 @@ app.get("/api/v1/health", (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is listening at http://localhost:${PORT}`);
+  console.log(`🚀 Server is listening at https://www.dianbratamedika.com`);
 });
