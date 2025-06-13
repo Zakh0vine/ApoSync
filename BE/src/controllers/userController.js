@@ -158,39 +158,39 @@ export const toggleActive = async (req, res) => {
   }
 };
 
-// Delete user
-export const deleteUser = async (req, res) => {
-  const { id } = req.params;
+// // Delete user
+// export const deleteUser = async (req, res) => {
+//   const { id } = req.params;
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
-    });
+//   try {
+//     const user = await prisma.user.findUnique({
+//       where: { id: parseInt(id) },
+//     });
 
-    if (!user || user.role === "SUPER_ADMIN") {
-      return res.status(404).json({ message: "User tidak ditemukan" });
-    }
+//     if (!user || user.role === "SUPER_ADMIN") {
+//       return res.status(404).json({ message: "User tidak ditemukan" });
+//     }
 
-    const userTransactions = await prisma.productTransaction.findMany({
-      where: { userId: parseInt(id) },
-    });
+//     const userTransactions = await prisma.productTransaction.findMany({
+//       where: { userId: parseInt(id) },
+//     });
 
-    if (userTransactions.length > 0) {
-      return res.status(400).json({
-        message: "User tidak dapat dihapus karena memiliki riwayat transaksi",
-      });
-    }
+//     if (userTransactions.length > 0) {
+//       return res.status(400).json({
+//         message: "User tidak dapat dihapus karena memiliki riwayat transaksi",
+//       });
+//     }
 
-    await prisma.user.delete({
-      where: { id: parseInt(id) },
-    });
+//     await prisma.user.delete({
+//       where: { id: parseInt(id) },
+//     });
 
-    res.status(200).json({ message: "User berhasil dihapus" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Gagal menghapus user" });
-  }
-};
+//     res.status(200).json({ message: "User berhasil dihapus" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Gagal menghapus user" });
+//   }
+// };
 
 // Buat user baru (untuk SUPER_ADMIN)
 export const createUser = async (req, res) => {

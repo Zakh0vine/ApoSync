@@ -82,13 +82,19 @@ export const createProduk = async (req, res) => {
 // Update produk
 export const updateProduk = async (req, res) => {
   const { id } = req.params;
-  const { nama, merk, kodeProduk, kategori, hargaModal, hargaJual } = req.body;
+  const {
+    nama,
+    merk,
+    kodeProduk,
+    kategori,
+    hargaModal,
+    sudahTermasukPPN,
+    hargaJual,
+  } = req.body;
 
   if (kategori && !isValidKategori(kategori)) {
     return res.status(400).json({
-      message: `Kategori tidak valid. Pilihan yang diizinkan: ${validKategori.join(
-        ", "
-      )}`,
+      message: `Kategori tidak valid. Pilihan: ${validKategori.join(", ")}`,
     });
   }
 
@@ -96,47 +102,52 @@ export const updateProduk = async (req, res) => {
     const produkLama = await prisma.produk.findUnique({
       where: { id: parseInt(id) },
     });
-
     if (!produkLama) {
       return res.status(404).json({ message: "Produk tidak ditemukan." });
     }
 
-    // Jika hargaModal di‐update, recalc hargaJual sesuai markup 25% + pembulatan ke 500
+    // Tentukan harga modal baru
     let baruHargaModal = produkLama.hargaModal;
-    let baruHargaJual = produkLama.hargaJual;
-
+    // Jika user update harga modal
     if (hargaModal != null) {
-      baruHargaModal = parseFloat(hargaModal);
-      // hitung markup 25%
-      const markup = baruHargaModal * 1.25;
-      // pembulatan ke kelipatan 500
-      baruHargaJual = Math.round(markup / 500) * 500;
-    } else if (hargaJual != null) {
-      // Jika user memasukkan hargaJual secara eksplisit, gunakan saja nilai itu
-      baruHargaJual = parseFloat(hargaJual);
+      let modal = parseFloat(hargaModal);
+      // hitung PPN jika perlu
+      if (!sudahTermasukPPN) {
+        modal = Math.round(modal * 1.11);
+      }
+      baruHargaModal = modal;
     }
 
-    const updatedProduk = await prisma.produk.update({
+    // Tentukan harga jual baru
+    let baruHargaJual = produkLama.hargaJual;
+    // Jika user explicit update harga jual
+    if (hargaJual != null) {
+      baruHargaJual = parseFloat(hargaJual);
+    } else if (hargaModal != null) {
+      // recalc markup dari harga modal baru
+      baruHargaJual = Math.round((baruHargaModal * 1.25) / 500) * 500;
+    }
+
+    const updated = await prisma.produk.update({
       where: { id: parseInt(id) },
       data: {
         nama: nama ?? produkLama.nama,
         merk: merk ?? produkLama.merk,
         kodeProduk: kodeProduk ?? produkLama.kodeProduk,
         kategori: kategori ?? produkLama.kategori,
-        hargaModal: hargaModal != null ? baruHargaModal : produkLama.hargaModal,
+        hargaModal: baruHargaModal,
         hargaJual: baruHargaJual,
       },
     });
 
-    return res.status(200).json({
-      message: "Produk berhasil diperbarui (master)",
-      data: updatedProduk,
-    });
+    return res
+      .status(200)
+      .json({ message: "Produk berhasil diperbarui", data: updated });
   } catch (error) {
     console.error("Update produk error:", error);
-    return res.status(500).json({
-      message: "Terjadi kesalahan saat memperbarui produk.",
-    });
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat memperbarui produk." });
   }
 };
 

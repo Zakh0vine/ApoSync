@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { IoIosWarning } from "react-icons/io";
+import { debounce } from "lodash";
 
 import Working from "@/assets/working.png";
 import Pharmacy from "@/assets/pharmacy.png";
@@ -26,7 +27,10 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    const delayedFetchData = debounce(fetchData, 800);
+    delayedFetchData();
+
+    return () => delayedFetchData.cancel();
   }, []);
 
   async function fetchData() {

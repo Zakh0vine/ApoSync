@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createUser,
-  deleteUser,
+  // deleteUser,
   toggleActive,
   updateUser,
   getAllUsers,
@@ -33,6 +33,6 @@ router.put("/:id", updateUser);
 router.patch("/:id/toggle", toggleActive);
 
 // Hapus user (jika tidak punya transaksi)
-router.delete("/:id", deleteUser);
+// router.delete("/:id", deleteUser);
 
 export default router;

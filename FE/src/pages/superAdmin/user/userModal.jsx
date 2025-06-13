@@ -29,13 +29,6 @@ export default function UserModal({ userData, onClose, onSuccess }) {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(UserSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      role: "KARYAWAN",
-      password: "",
-      konfirmasi_password: "",
-    },
   });
 
   useEffect(() => {
@@ -44,11 +37,8 @@ export default function UserModal({ userData, onClose, onSuccess }) {
       setValue("name", userData.name);
       setValue("email", userData.email);
       setValue("role", userData.role);
-    } else {
-      reset();
-      setSelectedId(0);
     }
-  }, [userData, setValue, reset]);
+  }, [userData, setValue]);
 
   async function onSubmit(data) {
     try {
@@ -127,52 +117,45 @@ export default function UserModal({ userData, onClose, onSuccess }) {
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-6"
           >
-            {/* Nama */}
-            <div className="flex flex-col w-full">
-              <Input
-                id="name"
-                type="text"
-                label="Nama"
-                placeholder="Masukkan nama"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
-                error={errors.name?.message}
-                {...register("name")}
-              />
+            {/* First Name & Last Name */}
+            <div className="flex flex-col md:flex-row justify-between gap-4">
+              <div className="flex flex-col w-full">
+                <Input
+                  id="name"
+                  label="Nama"
+                  type="text"
+                  error={errors.name?.message}
+                  {...register("name")}
+                />
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="flex flex-col w-full">
+            <div className="flex flex-col relative">
               <Input
                 id="email"
-                type="email"
                 label="Kontak"
-                placeholder="Masukkan e-mail"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
+                type="text"
                 error={errors.email?.message}
                 {...register("email")}
               />
             </div>
 
-            {/* Role */}
-            <div className="flex flex-col w-full">
+            <div className="flex flex-col relative">
               <Select
                 id="role"
+                aria-label="role"
                 label="Role"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
-                options={["KARYAWAN", "SUPER_ADMIN"]}
+                options={["KARYAWAN"]}
                 error={errors.role?.message}
                 {...register("role")}
               />
             </div>
 
-            {/* Password */}
-            <div className="flex flex-col relative w-full">
+            <div className="flex flex-col relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
                 label="Kata Sandi"
-                placeholder="Masukkan kata sandi"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
+                type={showPassword ? "text" : "password"}
                 error={errors.password?.message}
                 {...register("password")}
               />
@@ -189,14 +172,11 @@ export default function UserModal({ userData, onClose, onSuccess }) {
               )}
             </div>
 
-            {/* Konfirmasi Password */}
-            <div className="flex flex-col relative w-full">
+            <div className="flex flex-col relative">
               <Input
                 id="konfirmasi_password"
-                type={showConfirmPassword ? "text" : "password"}
                 label="Ulangi Kata Sandi"
-                placeholder="Konfirmasi kata sandi"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#6499E9] focus:ring-0"
+                type={showConfirmPassword ? "text" : "password"}
                 error={errors.konfirmasi_password?.message}
                 {...register("konfirmasi_password")}
               />
@@ -213,7 +193,7 @@ export default function UserModal({ userData, onClose, onSuccess }) {
               )}
             </div>
 
-            {/* Tombol Batal & Simpan */}
+            {/* Buttons */}
             <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
               <Button
                 onClick={onClose}

@@ -169,7 +169,7 @@ export default function IncomingProduct() {
           nama: data.nama,
           merk: data.merk,
           kodeProduk: data.kodeProduk,
-          kategori: data.kategori, // sudah "OBAT_BEBAS" / "OBAT_KERAS"
+          kategori: data.kategori,
           hargaModal: data.hargaModal,
           sudahTermasukPPN: data.sudahTermasukPPN,
         };
@@ -211,7 +211,7 @@ export default function IncomingProduct() {
             nama: data.nama,
             merk: data.merk,
             kodeProduk: data.kodeProduk,
-            kategori: data.kategori, // tetap enum string
+            kategori: data.kategori,
             hargaModal: data.hargaModal,
             sudahTermasukPPN: data.sudahTermasukPPN,
           };

@@ -1,63 +1,15 @@
 // controllers/laporanController.js
 
-import { PrismaClient, StatusKeluar } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import PDFDocument from "pdfkit";
 
 const prisma = new PrismaClient();
 
-/**
- * Utility: Gambar header tabel (kolom-kolom) pada posisi tertentu
- *
- * @param {PDFDocument} doc    - instance PDFKit
- * @param {number}    y        - posisi vertikal (y) untuk mulai menggambar header
- * @param {Array<{label: string, x: number, width: number}>} columns
- *                              - array definisi kolom: label teks, posisi x, dan lebar kolom
- */
-function drawTableHeader(doc, y, columns) {
-  doc.font("Helvetica-Bold").fontSize(12);
-  columns.forEach((col) => {
-    doc.text(col.label, col.x, y, {
-      width: col.width,
-      align: "left",
-    });
-  });
-
-  doc
-    .moveTo(columns[0].x, y + 15)
-    .lineTo(
-      columns[columns.length - 1].x + columns[columns.length - 1].width,
-      y + 15
-    )
-    .stroke();
-}
-
-/**
- * Utility: Gambar satu baris data pada posisi tertentu
- *
- * @param {PDFDocument} doc    - instance PDFKit
- * @param {number}    y        - posisi vertikal (y) untuk mulai menggambar baris
- * @param {Array<{text: string|number, x: number, width: number}>} row
- *                              - array data baris: isi teks, posisi x, dan lebar kolom
- */
-function drawTableRow(doc, y, row) {
-  doc.font("Helvetica").fontSize(10);
-  row.forEach((cell) => {
-    doc.text(cell.text.toString(), cell.x, y, {
-      width: cell.width,
-      align: "left",
-    });
-  });
-}
-
+// GET /laporan/persediaan
 export const getLaporanPersediaan = async (req, res) => {
   try {
     const produk = await prisma.produk.findMany({
-      select: {
-        nama: true,
-        merk: true,
-        kodeProduk: true,
-        stok: true,
-      },
+      select: { nama: true, merk: true, kodeProduk: true, stok: true },
       orderBy: { nama: "asc" },
     });
 
@@ -73,15 +25,19 @@ export const getLaporanPersediaan = async (req, res) => {
     console.error("Error getLaporanPersediaan:", error);
     return res
       .status(500)
-      .json({ message: "Gagal mengambil data persediaan", error });
+      .json({
+        message: "Gagal mengambil data persediaan",
+        error: error.message,
+      });
   }
 };
 
+// GET /laporan/laba
 export const getLaporanLaba = async (req, res) => {
   try {
     const today = new Date();
-    const lastMonth = new Date();
-    lastMonth.setDate(today.getDate() - 29);
+    const last30 = new Date(today);
+    last30.setDate(today.getDate() - 29);
 
     const produkList = await prisma.produk.findMany({
       select: {
@@ -90,13 +46,7 @@ export const getLaporanLaba = async (req, res) => {
         hargaModal: true,
         hargaJual: true,
         produkKeluar: {
-          where: {
-            status: StatusKeluar.TERJUAL,
-            tanggalKeluar: {
-              gte: lastMonth,
-              lte: today,
-            },
-          },
+          where: { tanggalKeluar: { gte: last30, lte: today } },
           select: { keuntungan: true },
         },
       },
@@ -116,25 +66,23 @@ export const getLaporanLaba = async (req, res) => {
     console.error("Error getLaporanLaba:", error);
     return res
       .status(500)
-      .json({ message: "Gagal mengambil data laba", error });
+      .json({ message: "Gagal mengambil data laba", error: error.message });
   }
 };
 
+// GET /laporan/download
 export const downloadLaporanPDF = async (req, res) => {
   try {
+    // Ambil data persediaan
     const persediaan = await prisma.produk.findMany({
-      select: {
-        nama: true,
-        merk: true,
-        kodeProduk: true,
-        stok: true,
-      },
+      select: { nama: true, merk: true, kodeProduk: true, stok: true },
       orderBy: { nama: "asc" },
     });
 
+    // Ambil data laba 30 hari terakhir
     const today = new Date();
-    const lastMonth = new Date();
-    lastMonth.setDate(today.getDate() - 29);
+    const last30 = new Date(today);
+    last30.setDate(today.getDate() - 29);
 
     const labaList = await prisma.produk.findMany({
       select: {
@@ -143,174 +91,119 @@ export const downloadLaporanPDF = async (req, res) => {
         hargaModal: true,
         hargaJual: true,
         produkKeluar: {
-          where: {
-            status: StatusKeluar.TERJUAL,
-            tanggalKeluar: {
-              gte: lastMonth,
-              lte: today,
-            },
-          },
+          where: { tanggalKeluar: { gte: last30, lte: today } },
           select: { keuntungan: true },
         },
       },
       orderBy: { nama: "asc" },
     });
 
+    // Setup PDF A4, margin 40
     const doc = new PDFDocument({ size: "A4", margin: 40 });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="laporan.pdf"');
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="laporan_persediaan_laba.pdf"'
+    );
     doc.pipe(res);
 
+    // Daftarkan font Times New Roman
+    doc.registerFont("Times-Roman", "Times-Roman");
+    doc.registerFont("Times-Bold", "Times-Bold");
+
+    // Judul dan Apotek
     doc
-      .font("Helvetica-Bold")
-      .fontSize(18)
-      .text("Laporan Persediaan & Laba Keuntungan\nApotek Dian Brata Medika", {
-        align: "center",
-      });
+      .font("Times-Bold")
+      .fontSize(16)
+      .text("Laporan Persediaan & Laba 30 Hari", { align: "center" });
+    doc.moveDown(0.25);
+    doc
+      .font("Times-Roman")
+      .fontSize(14)
+      .text("Apotek Dian Brata Medika", { align: "center" });
+    doc.moveDown(0.5);
+
+    // Tanggal unduh & nama dokter (lebih ditarik ke atas)
+    const dateStr = today.toLocaleDateString("id-ID");
+    doc
+      .font("Times-Roman")
+      .fontSize(10)
+      .text(`Tanggal Unduh: ${dateStr}`, { align: "right" });
+    doc.moveDown(0.15);
+    doc
+      .font("Times-Roman")
+      .fontSize(10)
+      .text("Dr. Mey Dian Intan Sari", { align: "right" });
     doc.moveDown(1);
 
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(14)
-      .text("Persediaan Produk", 40, doc.y, {
-        underline: true,
-        align: "left",
-      });
-    doc.moveDown(0.5);
-
-    const persediaanColumns = [
-      { label: "No", x: 40, width: 30 },
-      { label: "Nama Produk", x: 80, width: 150 },
-      { label: "Merek", x: 240, width: 100 },
-      { label: "Kode", x: 350, width: 80 },
-      { label: "Total Stok", x: 440, width: 80 },
-    ];
-
+    // Gambar tabel Persediaan
+    const startX = 40;
     let y = doc.y;
-    drawTableHeader(doc, y, persediaanColumns);
-    y += 20;
+    const rowH = 14;
 
-    for (let i = 0; i < persediaan.length; i++) {
-      const item = persediaan[i];
-      const row = [
-        {
-          text: i + 1,
-          x: persediaanColumns[0].x,
-          width: persediaanColumns[0].width,
-        },
-        {
-          text: item.nama,
-          x: persediaanColumns[1].x,
-          width: persediaanColumns[1].width,
-        },
-        {
-          text: item.merk,
-          x: persediaanColumns[2].x,
-          width: persediaanColumns[2].width,
-        },
-        {
-          text: item.kodeProduk,
-          x: persediaanColumns[3].x,
-          width: persediaanColumns[3].width,
-        },
-        {
-          text: item.stok,
-          x: persediaanColumns[4].x,
-          width: persediaanColumns[4].width,
-        },
-      ];
-      drawTableRow(doc, y, row);
-      y += 20;
+    doc.font("Times-Bold").fontSize(11);
+    ["No", "Produk", "Merek", "Kode", "Stok"].forEach((label, i) => {
+      const x = startX + [0, 60, 220, 320, 380][i];
+      doc.text(label, x, y);
+    });
+    y += rowH;
+    doc
+      .moveTo(startX, y - 4)
+      .lineTo(555, y - 4)
+      .stroke();
 
-      if (y > doc.page.height - 100) {
-        doc.addPage();
-        y = doc.y;
+    doc.font("Times-Roman").fontSize(10);
+    persediaan.forEach((item, i) => {
+      const vals = [i + 1, item.nama, item.merk, item.kodeProduk, item.stok];
+      vals.forEach((v, j) => {
+        const x = startX + [0, 60, 220, 320, 380][j];
+        const widths = [20, 150, 100, 60, 50];
+        doc.text(v.toString(), x, y, { width: widths[j] });
+      });
+      y += rowH;
+    });
+
+    // Jeda sebelum tabel laba
+    y += rowH;
+
+    // Gambar tabel Laba
+    doc.font("Times-Bold").fontSize(11);
+    ["No", "Produk", "Merek", "H.Modal", "H.Jual", "Total"].forEach(
+      (label, i) => {
+        const x = startX + [0, 40, 200, 300, 380, 460][i];
+        doc.text(label, x, y);
       }
-    }
-
-    doc.moveDown(2);
-
+    );
+    y += rowH;
     doc
-      .font("Helvetica-Bold")
-      .fontSize(14)
-      .text("Laba Keuntungan 30 hari terakhir", 40, doc.y, {
-        underline: true,
-        align: "left",
-      });
-    doc.moveDown(0.5);
+      .moveTo(startX, y - 4)
+      .lineTo(535 + 20, y - 4)
+      .stroke();
 
-    const labaColumns = [
-      { label: "No", x: 40, width: 30 },
-      { label: "Nama Produk", x: 80, width: 150 },
-      { label: "Merek", x: 240, width: 100 },
-      { label: "Harga Modal", x: 350, width: 80 },
-      { label: "Harga Jual", x: 440, width: 80 },
-      { label: "Total Laba", x: 530, width: 80 },
-    ];
-
-    y = doc.y;
-    drawTableHeader(doc, y, labaColumns);
-    y += 20;
-
-    for (let i = 0; i < labaList.length; i++) {
-      const item = labaList[i];
-      const totalLaba = item.produkKeluar.reduce((s, t) => s + t.keuntungan, 0);
-
-      const row = [
-        { text: i + 1, x: labaColumns[0].x, width: labaColumns[0].width },
-        { text: item.nama, x: labaColumns[1].x, width: labaColumns[1].width },
-        { text: item.merk, x: labaColumns[2].x, width: labaColumns[2].width },
-        {
-          text: item.hargaModal,
-          x: labaColumns[3].x,
-          width: labaColumns[3].width,
-        },
-        {
-          text: item.hargaJual,
-          x: labaColumns[4].x,
-          width: labaColumns[4].width,
-        },
-        { text: totalLaba, x: labaColumns[5].x, width: labaColumns[5].width },
+    doc.font("Times-Roman").fontSize(10);
+    labaList.forEach((item, i) => {
+      const total = item.produkKeluar.reduce((s, t) => s + t.keuntungan, 0);
+      const vals = [
+        i + 1,
+        item.nama,
+        item.merk,
+        item.hargaModal,
+        item.hargaJual,
+        total,
       ];
-      drawTableRow(doc, y, row);
-      y += 20;
-
-      if (y > doc.page.height - 100) {
-        doc.addPage();
-        y = doc.y;
-      }
-    }
-
-    const bottomMargin = 40;
-    const footerY = doc.page.height - bottomMargin;
-
-    const now = new Date();
-    const dd = String(now.getDate()).padStart(2, "0");
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const yyyy = now.getFullYear();
-    const formattedDate = `${dd}-${mm}-${yyyy}`;
-
-    doc
-      .font("Helvetica")
-      .fontSize(10)
-      .text(`Tanggal Unduh: ${formattedDate}`, 40, footerY - 20, {
-        align: "right",
-        width: doc.page.width - 80,
+      vals.forEach((v, j) => {
+        const x = startX + [0, 40, 200, 300, 380, 460][j];
+        const widths = [20, 140, 90, 70, 70, 70];
+        doc.text(v.toString(), x, y, { width: widths[j] });
       });
-
-    doc
-      .font("Helvetica")
-      .fontSize(10)
-      .text(`Dr. Mey Dian Intansari`, 40, footerY, {
-        align: "right",
-        width: doc.page.width - 80,
-      });
+      y += rowH;
+    });
 
     doc.end();
   } catch (error) {
     console.error("Error downloadLaporanPDF:", error);
     return res
       .status(500)
-      .json({ message: "Gagal membuat PDF laporan", error });
+      .json({ message: "Gagal membuat PDF laporan", error: error.message });
   }
 };

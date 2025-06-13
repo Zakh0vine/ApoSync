@@ -5,6 +5,7 @@ import { TiPlusOutline } from "react-icons/ti";
 import { TbEdit } from "react-icons/tb";
 import { GoTrash } from "react-icons/go";
 import { IoIosSearch, IoMdClose, IoIosWarning } from "react-icons/io";
+import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/button";
 import Layout from "@/components/layout";
@@ -17,20 +18,28 @@ import { useToast } from "@/utils/toastify/toastProvider";
 import Delete from "@/utils/sweetalert/delete";
 import Edit from "@/utils/sweetalert/edit";
 import { formatNumber } from "@/utils/formatter/formatNumber";
+import { useDebouncedValue } from "@/utils/hooks/useDebouncedValue";
 
 export default function Produk() {
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filteredDetail, setFilteredDetail] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [productSearch, setProductSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("filter") || "";
+  const initialPage = parseInt(searchParams.get("page") || "1", 10);
+
+  const [productSearch, setProductSearch] = useState(initialSearch);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [itemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
+
+  const debouncedSearch = useDebouncedValue(productSearch, 500);
 
   useEffect(() => {
     const delayedFetchData = debounce(fetchData, 800);
@@ -96,8 +105,6 @@ export default function Produk() {
       });
 
       if (result.isConfirmed) {
-        // setIsLoading(true);
-        // navigate(`/produk-keluar`);
         setIsLoading(true);
         navigate(`/produk-keluar/${id}`);
       }
@@ -117,11 +124,7 @@ export default function Produk() {
     }
   }
 
-  // Product search handler
-  const handleProductSearch = (e) => {
-    const term = e.target.value;
-    setProductSearch(term);
-
+  useEffect(() => {
     let filtered = products;
 
     if (selectedCategory) {
@@ -130,63 +133,39 @@ export default function Produk() {
       );
     }
 
-    if (term.trim() !== "") {
+    if (debouncedSearch.trim() !== "") {
       filtered = filtered.filter(
         (product) =>
-          product.nama.toLowerCase().includes(term.toLowerCase()) ||
-          product.merk.toLowerCase().includes(term.toLowerCase()) ||
-          product.kodeProduk.toLowerCase().includes(term.toLowerCase())
+          product.nama.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          product.merk.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          product.kodeProduk
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase())
       );
     }
 
     setFilteredProducts(filtered);
+    setCurrentPage(1);
+  }, [debouncedSearch, selectedCategory, products]);
+
+  useEffect(() => {
+    const params = {};
+
+    if (debouncedSearch.trim()) params.search = debouncedSearch;
+    if (selectedCategory) params.category = selectedCategory;
+    if (currentPage > 1) params.page = currentPage;
+
+    setSearchParams(params);
+  }, [debouncedSearch, selectedCategory, currentPage]);
+
+  const handleProductSearch = (e) => {
+    setProductSearch(e.target.value);
     setCurrentPage(1);
   };
 
   const handleFilterCategory = (category) => {
     setSelectedCategory(category);
-
-    let filtered = products;
-
-    // Jika kategori dipilih (bukan null), filter berdasarkan kategori
-    if (category) {
-      filtered = filtered.filter((product) => product.kategori === category);
-    }
-
-    // Terapkan filter pencarian jika ada
-    if (productSearch.trim() !== "") {
-      filtered = filtered.filter(
-        (product) =>
-          product.nama.toLowerCase().includes(productSearch.toLowerCase()) ||
-          product.merk.toLowerCase().includes(productSearch.toLowerCase()) ||
-          product.kodeProduk.toLowerCase().includes(productSearch.toLowerCase())
-      );
-    }
-
-    setFilteredProducts(filtered);
     setCurrentPage(1);
-  };
-
-  const handleDetailSearch = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-
-    if (!selectedProduct || !selectedProduct.stokBatch) return;
-
-    if (term.trim() === "") {
-      setFilteredDetail(selectedProduct.stokBatch);
-    } else {
-      const filtered = selectedProduct.stokBatch.filter((item) => {
-        if (!item.tanggalExp) return false;
-        const expDate = new Date(item.tanggalExp).toLocaleDateString("id-ID", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
-        return expDate.toLowerCase().includes(term.toLowerCase());
-      });
-      setFilteredDetail(filtered);
-    }
   };
 
   const openProductDetail = (product) => {
@@ -201,7 +180,6 @@ export default function Produk() {
   const closeProductDetail = () => {
     setSelectedProduct(null);
     setFilteredDetail([]);
-    setSearchTerm("");
   };
 
   // Get current products for pagination
@@ -337,20 +315,7 @@ export default function Produk() {
             {/* Modal Content */}
             <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-y-auto z-10 relative">
               {/* Modal Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pt-4 px-4">
-                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4">
-                  <div className="flex items-center bg-[#6499E9A6] p-2 rounded-lg w-full sm:w-auto">
-                    <IoIosSearch className="text-white" />
-                    <input
-                      type="text"
-                      placeholder="Cari"
-                      className="bg-transparent outline-none ml-2 text-base placeholder-white text-white w-full"
-                      value={searchTerm}
-                      onChange={handleDetailSearch}
-                    />
-                  </div>
-                  <Filter />
-                </div>
+              <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-2 mb-4 pt-4 px-4">
                 <button
                   onClick={closeProductDetail}
                   className="text-gray-400 hover:text-gray-500 self-end sm:self-auto"

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const tambahProdukKeluar = async (req, res) => {
   const { kodeProduk, jumlah, userId, tanggalKeluar, status } = req.body;
 
-  // 1) Validasi wajib
+  // Validasi wajib
   if (!kodeProduk || jumlah == null || !userId || !tanggalKeluar || !status) {
     return res.status(400).json({
       message:
@@ -15,72 +15,68 @@ export const tambahProdukKeluar = async (req, res) => {
     });
   }
 
-  // 2) Validasi status
+  // Validasi status
   if (!Object.values(StatusKeluar).includes(status)) {
     return res.status(400).json({ message: "Status tidak valid." });
   }
 
-  // 3) Validasi format & tanggalKeluar ≤ hari ini
+  // Validasi tanggal
   const dateKeluar = new Date(tanggalKeluar);
   if (isNaN(dateKeluar.getTime())) {
-    return res.status(400).json({ message: "tanggal keluar tidak valid." });
+    return res.status(400).json({ message: "Tanggal keluar tidak valid." });
   }
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = new Date();
   const keluarDay = new Date(
     dateKeluar.getFullYear(),
     dateKeluar.getMonth(),
     dateKeluar.getDate()
   );
-  if (keluarDay > today) {
-    return res.status(400).json({
-      message: "tanggal keluar tidak boleh lebih dari hari ini.",
-    });
+  if (
+    keluarDay > new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Tanggal keluar tidak boleh lebih dari hari ini." });
   }
 
   try {
-    // 4) Cari master produk
-    const produk = await prisma.produk.findUnique({
-      where: { kodeProduk },
-    });
+    // 1) Cari produk master
+    const produk = await prisma.produk.findUnique({ where: { kodeProduk } });
     if (!produk) {
       return res.status(404).json({ message: "Produk tidak ditemukan." });
     }
 
-    // 5) Ambil batch yang sisaStok > 0 (FEFO: tanggalExp ascending)
+    // 2) Ambil batch FEFO
     let sisa = jumlah;
     const batchList = await prisma.produkStokKadaluarsa.findMany({
-      where: {
-        produkId: produk.id,
-        sisaStok: { gt: 0 },
-      },
+      where: { produkId: produk.id, sisaStok: { gt: 0 } },
       orderBy: { tanggalExp: "asc" },
     });
 
     let totalDikeluarkan = 0;
 
-    // 6) Loop tiap batch
     for (const batch of batchList) {
       if (sisa <= 0) break;
 
       const ambil = Math.min(batch.sisaStok, sisa);
       const hargaModalPerUnit = produk.hargaModal;
 
-      // 6b) Hitung keuntungan hanya kalau TERJUAL
-      const keuntungan =
-        status === StatusKeluar.TERJUAL
-          ? (produk.hargaJual - hargaModalPerUnit) * ambil
-          : 0;
+      // **Baru**: Hitung keuntungan negatif untuk rusak/kadaluarsa
+      let keuntungan;
+      if (status === StatusKeluar.TERJUAL) {
+        keuntungan = (produk.hargaJual - hargaModalPerUnit) * ambil;
+      } else {
+        // RUSAK atau KADALUARSA
+        keuntungan = -(hargaModalPerUnit * ambil);
+      }
 
-      // 6c) Kurangi sisaStok batch
+      // Kurangi stok batch
       await prisma.produkStokKadaluarsa.update({
         where: { id: batch.id },
-        data: {
-          sisaStok: batch.sisaStok - ambil,
-        },
+        data: { sisaStok: batch.sisaStok - ambil },
       });
 
-      // 6d) Simpan entri ke ProdukKeluar
+      // Simpan entri keluar
       await prisma.produkKeluar.create({
         data: {
           produkId: produk.id,
@@ -98,21 +94,19 @@ export const tambahProdukKeluar = async (req, res) => {
       sisa -= ambil;
     }
 
-    // 7) Jika stok tidak mencukupi
     if (sisa > 0) {
       return res.status(400).json({
         message: `Stok tidak mencukupi. Sisa kebutuhan: ${sisa} unit.`,
       });
     }
 
-    // 8) Update stok master Produk
+    // Update stok master
     await prisma.produk.update({
       where: { id: produk.id },
       data: { stok: produk.stok - totalDikeluarkan },
     });
 
-    // 9) Push notifikasi “KELUAR”
-    //    Contoh pesan: “Produk [nama] (merk [merk]) TERJUAL sebanyak X unit.”
+    // Push notifikasi
     pushNotification({
       message: `Produk ${produk.nama} (merk ${produk.merk}) ${status} sebanyak ${totalDikeluarkan} unit.`,
       tanggal: new Date(),
