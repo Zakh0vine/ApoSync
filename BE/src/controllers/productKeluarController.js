@@ -7,20 +7,18 @@ const prisma = new PrismaClient();
 export const tambahProdukKeluar = async (req, res) => {
   const { kodeProduk, jumlah, userId, tanggalKeluar, status } = req.body;
 
-  // Validasi wajib
+  // 1. Validasi wajib
   if (!kodeProduk || jumlah == null || !userId || !tanggalKeluar || !status) {
     return res.status(400).json({
       message:
         "kodeProduk, jumlah, userId, tanggal keluar, dan status wajib diisi.",
     });
   }
-
-  // Validasi status
+  // 2. Validasi status
   if (!Object.values(StatusKeluar).includes(status)) {
     return res.status(400).json({ message: "Status tidak valid." });
   }
-
-  // Validasi tanggal
+  // 3. Validasi tanggal
   const dateKeluar = new Date(tanggalKeluar);
   if (isNaN(dateKeluar.getTime())) {
     return res.status(400).json({ message: "Tanggal keluar tidak valid." });
@@ -40,73 +38,77 @@ export const tambahProdukKeluar = async (req, res) => {
   }
 
   try {
-    // 1) Cari produk master
+    // 4. Cari produk master
     const produk = await prisma.produk.findUnique({ where: { kodeProduk } });
     if (!produk) {
       return res.status(404).json({ message: "Produk tidak ditemukan." });
     }
 
-    // 2) Ambil batch FEFO
-    let sisa = jumlah;
+    // 5. Ambil semua batch FEFO yang masih sisa
     const batchList = await prisma.produkStokKadaluarsa.findMany({
       where: { produkId: produk.id, sisaStok: { gt: 0 } },
       orderBy: { tanggalExp: "asc" },
     });
 
+    // 6. Cek kecukupan total stok sebelum write
+    const totalStok = batchList.reduce((sum, b) => sum + b.sisaStok, 0);
+    if (jumlah > totalStok) {
+      return res.status(400).json({
+        message: `Stok tidak mencukupi. Sisa kebutuhan: ${
+          jumlah - totalStok
+        } unit.`,
+      });
+    }
+
+    // 7. Jalankan transaksi atomik
     let totalDikeluarkan = 0;
+    await prisma.$transaction(async (tx) => {
+      let sisa = jumlah;
+      for (const batch of batchList) {
+        if (sisa <= 0) break;
+        const ambil = Math.min(batch.sisaStok, sisa);
+        const hargaModalPerUnit = produk.hargaModal;
 
-    for (const batch of batchList) {
-      if (sisa <= 0) break;
+        // Hitung keuntungan
+        let keuntungan;
+        if (status === StatusKeluar.TERJUAL) {
+          keuntungan = (produk.hargaJual - hargaModalPerUnit) * ambil;
+        } else {
+          keuntungan = -(hargaModalPerUnit * ambil);
+        }
 
-      const ambil = Math.min(batch.sisaStok, sisa);
-      const hargaModalPerUnit = produk.hargaModal;
+        // Update stok batch
+        await tx.produkStokKadaluarsa.update({
+          where: { id: batch.id },
+          data: { sisaStok: batch.sisaStok - ambil },
+        });
 
-      // **Baru**: Hitung keuntungan negatif untuk rusak/kadaluarsa
-      let keuntungan;
-      if (status === StatusKeluar.TERJUAL) {
-        keuntungan = (produk.hargaJual - hargaModalPerUnit) * ambil;
-      } else {
-        // RUSAK atau KADALUARSA
-        keuntungan = -(hargaModalPerUnit * ambil);
+        // Simpan entri keluar
+        await tx.produkKeluar.create({
+          data: {
+            produkId: produk.id,
+            userId,
+            jumlah: ambil,
+            hargaModal: hargaModalPerUnit,
+            hargaJual: produk.hargaJual,
+            keuntungan,
+            status,
+            tanggalKeluar: keluarDay,
+          },
+        });
+
+        totalDikeluarkan += ambil;
+        sisa -= ambil;
       }
 
-      // Kurangi stok batch
-      await prisma.produkStokKadaluarsa.update({
-        where: { id: batch.id },
-        data: { sisaStok: batch.sisaStok - ambil },
+      // Update stok master
+      await tx.produk.update({
+        where: { id: produk.id },
+        data: { stok: produk.stok - totalDikeluarkan },
       });
-
-      // Simpan entri keluar
-      await prisma.produkKeluar.create({
-        data: {
-          produkId: produk.id,
-          userId,
-          jumlah: ambil,
-          hargaModal: hargaModalPerUnit,
-          hargaJual: produk.hargaJual,
-          keuntungan,
-          status,
-          tanggalKeluar: keluarDay,
-        },
-      });
-
-      totalDikeluarkan += ambil;
-      sisa -= ambil;
-    }
-
-    if (sisa > 0) {
-      return res.status(400).json({
-        message: `Stok tidak mencukupi. Sisa kebutuhan: ${sisa} unit.`,
-      });
-    }
-
-    // Update stok master
-    await prisma.produk.update({
-      where: { id: produk.id },
-      data: { stok: produk.stok - totalDikeluarkan },
     });
 
-    // Push notifikasi
+    // 8. Push notifikasi (di luar transaksi agar tidak memblokir DB)
     pushNotification({
       message: `Produk ${produk.nama} (merk ${produk.merk}) ${status} sebanyak ${totalDikeluarkan} unit.`,
       tanggal: new Date(),

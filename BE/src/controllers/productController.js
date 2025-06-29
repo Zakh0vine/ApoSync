@@ -151,12 +151,14 @@ export const updateProduk = async (req, res) => {
   }
 };
 
-// Ambil semua produk (termasuk stok total dari batch)
+// Ambil semua produk (hanya batch dengan sisaStok > 0)
 export const getAllProduk = async (req, res) => {
   try {
     const semuaProduk = await prisma.produk.findMany({
       include: {
-        stokBatch: true,
+        stokBatch: {
+          where: { sisaStok: { gt: 0 } },
+        },
       },
       orderBy: {
         updatedAt: "desc",
@@ -173,7 +175,7 @@ export const getAllProduk = async (req, res) => {
   }
 };
 
-// Ambil produk berdasarkan ID
+// Ambil produk berdasarkan ID (filter batch sisa > 0)
 export const getProdukById = async (req, res) => {
   const { id } = req.params;
 
@@ -181,7 +183,9 @@ export const getProdukById = async (req, res) => {
     const produk = await prisma.produk.findUnique({
       where: { id: parseInt(id) },
       include: {
-        stokBatch: true,
+        stokBatch: {
+          where: { sisaStok: { gt: 0 } },
+        },
       },
     });
 
